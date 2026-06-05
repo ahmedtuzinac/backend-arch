@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from tortoise import Tortoise
 
 from app.config import settings
+from app.oauth.router import router as oauth_router
 from app.tokens.router import router as tokens_router
 from app.users.router import router as users_router
 from core_shared.logging import setup_logging
@@ -40,6 +41,7 @@ app.add_middleware(RequestIdMiddleware)
 
 app.include_router(users_router)
 app.include_router(tokens_router)
+app.include_router(oauth_router)
 
 
 @app.get("/health")
