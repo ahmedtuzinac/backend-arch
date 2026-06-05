@@ -67,6 +67,19 @@ services:
       retries: 3
     restart: unless-stopped
 
+  auth-worker:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    command: arq app.workers.settings.WorkerSettings
+    env_file: services/auth/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   websocket:
     build:
       context: .
