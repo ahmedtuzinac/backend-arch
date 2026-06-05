@@ -1,4 +1,4 @@
-.PHONY: up down test test-auth test-ws lint format new-service migrate
+.PHONY: up down test test-auth test-ws lint format new-service migrate init-project
 
 up:
 	podman-compose up --build
@@ -29,3 +29,6 @@ new-service:
 migrate:
 	cd services/auth && aerich upgrade
 	cd services/websocket && aerich upgrade
+
+init-project:
+	@bash scripts/init-project.sh
