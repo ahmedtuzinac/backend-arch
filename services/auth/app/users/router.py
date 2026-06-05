@@ -6,6 +6,7 @@ from app.dependencies import get_current_user
 from app.users.models import User
 from app.users.schemas import UserCreate, UserResponse, UserUpdate
 from app.users.service import create_user, get_user_by_email, update_user
+from app.workers.enqueue import enqueue
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -19,6 +20,7 @@ async def register(data: UserCreate):
             detail="Email already registered",
         )
     user = await create_user(data)
+    await enqueue("send_welcome_email", user_id=user.id)
     return user
 
 
