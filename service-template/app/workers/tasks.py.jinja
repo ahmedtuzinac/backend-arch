@@ -1,0 +1,14 @@
+{%- if needs_workers %}
+import structlog
+
+from core_shared.workers import tracked_task
+
+logger = structlog.get_logger()
+
+
+@tracked_task
+async def example_task(ctx: dict, *, job_id: str | None = None) -> dict:
+    """Example background task. Replace with your own logic."""
+    await logger.ainfo("running_example_task")
+    return {"status": "done"}
+{%- endif %}

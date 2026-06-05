@@ -1,0 +1,43 @@
+{%- if needs_workers %}
+from arq.connections import RedisSettings
+{%- if needs_postgres %}
+from tortoise import Tortoise
+{%- endif %}
+
+from app.config import settings
+from app.workers.tasks import example_task
+
+{%- if needs_postgres %}
+
+TORTOISE_ORM = {
+    "connections": {"default": settings.database_url},
+    "apps": {
+        "models": {
+            "models": ["core_shared.workers.models"],
+            "default_connection": "default",
+        }
+    },
+}
+
+
+async def startup(ctx: dict) -> None:
+    await Tortoise.init(config=TORTOISE_ORM)
+    await Tortoise.generate_schemas()
+
+
+async def shutdown(ctx: dict) -> None:
+    await Tortoise.close_connections()
+{%- endif %}
+
+
+class WorkerSettings:
+    functions = [example_task]
+    cron_jobs = []
+{%- if needs_postgres %}
+    on_startup = startup
+    on_shutdown = shutdown
+{%- endif %}
+    redis_settings = RedisSettings.from_dsn(settings.redis_url)
+    max_jobs = 10
+    job_timeout = 300
+{%- endif %}

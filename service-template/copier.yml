@@ -18,3 +18,8 @@ needs_redis:
   type: bool
   help: "Does this service need Redis?"
   default: false
+
+needs_workers:
+  type: bool
+  help: "Does this service need background workers (arq)?"
+  default: false
