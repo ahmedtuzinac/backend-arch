@@ -1,11 +1,15 @@
-from passlib.hash import bcrypt
+import bcrypt
 
 from app.users.models import User
 from app.users.schemas import UserCreate, UserUpdate
 
 
+def _hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
 async def create_user(data: UserCreate) -> User:
-    hashed_password = bcrypt.hash(data.password)
+    hashed_password = _hash_password(data.password)
     return await User.create(email=data.email, hashed_password=hashed_password)
 
 
@@ -21,10 +25,10 @@ async def update_user(user_id: int, data: UserUpdate) -> User:
     user = await User.get(id=user_id)
     update_data = data.model_dump(exclude_unset=True)
     if "password" in update_data:
-        update_data["hashed_password"] = bcrypt.hash(update_data.pop("password"))
+        update_data["hashed_password"] = _hash_password(update_data.pop("password"))
     await user.update_from_dict(update_data).save()
     return user
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
