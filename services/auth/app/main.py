@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI
 from tortoise import Tortoise
 
@@ -22,11 +23,26 @@ TORTOISE_ORM = {
 }
 
 
+async def ensure_admin_user() -> None:
+    """Create default admin user if it doesn't exist."""
+    from app.users.models import User
+    from app.users.schemas import UserCreate
+    from app.users.service import create_user
+
+    existing = await User.get_or_none(email=settings.admin_email)
+    if existing is None:
+        user = await create_user(UserCreate(email=settings.admin_email, password=settings.admin_password))
+        user.is_superuser = True
+        await user.save()
+        structlog.get_logger().info("admin_user_created", email=settings.admin_email)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging(log_level=settings.log_level)
     await Tortoise.init(config=TORTOISE_ORM)
     await Tortoise.generate_schemas()
+    await ensure_admin_user()
     yield
     await Tortoise.close_connections()
 

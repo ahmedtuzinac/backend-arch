@@ -11,6 +11,9 @@ class AuthSettings(BaseAppSettings):
 
     oauth2_authorization_code_expire_minutes: int = 10
 
+    admin_email: str = "admin@localhost"
+    admin_password: str = "admin"
+
     host: str = "0.0.0.0"
     port: int = 8001
 
