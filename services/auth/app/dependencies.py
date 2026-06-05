@@ -20,7 +20,7 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from None
 
     user = await User.get_or_none(id=int(payload.sub))
     if user is None:

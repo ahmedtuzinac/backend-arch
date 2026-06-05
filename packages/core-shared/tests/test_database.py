@@ -1,4 +1,4 @@
-from core_shared.database import BaseModel, TimestampMixin, SoftDeleteMixin
+from core_shared.database import BaseModel, SoftDeleteMixin, TimestampMixin
 
 
 def test_base_model_has_id_field():

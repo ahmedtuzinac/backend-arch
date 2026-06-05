@@ -59,9 +59,7 @@ async def exchange_authorization_code(
     client_secret: str,
     redirect_uri: str,
 ) -> TokenResponse:
-    auth_code = await AuthorizationCode.get_or_none(
-        code=code, is_used=False
-    ).prefetch_related("client", "user")
+    auth_code = await AuthorizationCode.get_or_none(code=code, is_used=False).prefetch_related("client", "user")
 
     if auth_code is None:
         raise ValueError("Invalid authorization code")

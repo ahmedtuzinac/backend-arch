@@ -41,7 +41,7 @@ async def init_db(postgres_url):
 
 
 @pytest.fixture
-async def client(init_db) -> AsyncGenerator[AsyncClient, None]:
+async def client(init_db) -> AsyncGenerator[AsyncClient]:
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:

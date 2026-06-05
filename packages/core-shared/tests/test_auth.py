@@ -4,7 +4,6 @@ import pytest
 
 from core_shared.auth.jwt import create_access_token, decode_token
 
-
 SECRET_KEY = "test-secret-key-that-is-long-enough-for-hs256"
 
 

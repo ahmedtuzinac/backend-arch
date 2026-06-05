@@ -1,7 +1,6 @@
 import pytest
-
-from app.users.service import create_user, get_user_by_email, update_user
 from app.users.schemas import UserCreate, UserUpdate
+from app.users.service import create_user, get_user_by_email, update_user
 
 
 @pytest.mark.asyncio

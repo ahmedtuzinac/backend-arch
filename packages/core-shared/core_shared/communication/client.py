@@ -32,9 +32,7 @@ class ServiceClient:
         for attempt in range(1, self.max_retries + 1):
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.request(
-                        method, url, json=json, headers=headers, params=params
-                    )
+                    response = await client.request(method, url, json=json, headers=headers, params=params)
                     response.raise_for_status()
                     return response
             except (httpx.HTTPStatusError, httpx.RequestError) as e:

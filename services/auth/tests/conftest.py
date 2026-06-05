@@ -9,7 +9,6 @@ from httpx import ASGITransport, AsyncClient
 from testcontainers.postgres import PostgresContainer
 from tortoise import Tortoise
 
-
 TORTOISE_MODELS = [
     "app.users.models",
     "app.oauth.models",
@@ -43,7 +42,7 @@ async def init_db(postgres_url):
 
 
 @pytest.fixture
-async def client(init_db) -> AsyncGenerator[AsyncClient, None]:
+async def client(init_db) -> AsyncGenerator[AsyncClient]:
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:

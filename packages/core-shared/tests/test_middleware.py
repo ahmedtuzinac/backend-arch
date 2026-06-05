@@ -2,7 +2,7 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from core_shared.middleware import setup_cors, setup_error_handler, RequestIdMiddleware
+from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
 
 
 @pytest.fixture

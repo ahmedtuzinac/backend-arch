@@ -47,7 +47,7 @@ async def authorize(
             "redirect_uri": f"{data.redirect_uri}?code={code}&state={data.state or ''}",
         }
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from None
 
 
 @router.post("/token", response_model=TokenResponse)
@@ -72,7 +72,7 @@ async def token(data: TokenRequest):
                 detail=f"Unsupported grant_type: {data.grant_type}",
             )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from None
 
 
 @router.post("/revoke")

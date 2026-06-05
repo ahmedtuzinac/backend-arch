@@ -23,7 +23,7 @@ def get_current_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=str(e),
                 headers={"WWW-Authenticate": "Bearer"},
-            )
+            ) from None
 
         for scope in security_scopes.scopes:
             if scope not in payload.scopes:

@@ -45,19 +45,25 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = None):
                 await manager.send_to_user(user_id, {"type": "left", "room": msg.room})
 
             elif msg.type == "message" and msg.room:
-                await manager.broadcast_to_room(msg.room, {
-                    "type": "message",
-                    "room": msg.room,
-                    "content": msg.content,
-                    "from": user_id,
-                })
+                await manager.broadcast_to_room(
+                    msg.room,
+                    {
+                        "type": "message",
+                        "room": msg.room,
+                        "content": msg.content,
+                        "from": user_id,
+                    },
+                )
 
             elif msg.type == "direct" and msg.target_user_id:
-                await manager.send_to_user(msg.target_user_id, {
-                    "type": "direct",
-                    "content": msg.content,
-                    "from": user_id,
-                })
+                await manager.send_to_user(
+                    msg.target_user_id,
+                    {
+                        "type": "direct",
+                        "content": msg.content,
+                        "from": user_id,
+                    },
+                )
 
     except WebSocketDisconnect:
         manager.disconnect(user_id=user_id)

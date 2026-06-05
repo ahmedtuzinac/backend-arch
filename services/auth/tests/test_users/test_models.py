@@ -1,6 +1,6 @@
 import pytest
-
 from app.users.models import User
+from tortoise.exceptions import IntegrityError
 
 
 @pytest.mark.asyncio
@@ -18,5 +18,5 @@ async def test_create_user(init_db):
 @pytest.mark.asyncio
 async def test_user_unique_email(init_db):
     await User.create(email="unique@example.com", hashed_password="hash1")
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         await User.create(email="unique@example.com", hashed_password="hash2")

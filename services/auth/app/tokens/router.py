@@ -30,7 +30,7 @@ async def refresh(data: dict):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e),
-        )
+        ) from None
 
 
 @router.post("/token/verify", response_model=TokenVerifyResponse)

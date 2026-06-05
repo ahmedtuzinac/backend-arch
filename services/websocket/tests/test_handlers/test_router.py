@@ -3,10 +3,13 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_send_message_endpoint(client):
-    response = await client.post("/messages/send", json={
-        "content": "hello world",
-        "type": "broadcast",
-    })
+    response = await client.post(
+        "/messages/send",
+        json={
+            "content": "hello world",
+            "type": "broadcast",
+        },
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "sent"
