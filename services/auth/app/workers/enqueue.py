@@ -1,4 +1,4 @@
-from arq.connections import ArqRedis, create_pool, RedisSettings
+from arq.connections import ArqRedis, RedisSettings, create_pool
 
 from app.config import settings
 from core_shared.workers import enqueue_task
