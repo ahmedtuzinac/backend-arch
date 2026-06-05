@@ -1,0 +1,37 @@
+[project]
+name = "{{ service_name }}-service"
+version = "0.1.0"
+description = "{{ service_name }} microservice"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+{%- if needs_postgres %}
+    "tortoise-orm[asyncpg]>=0.22.0",
+    "aerich>=0.8.0",
+{%- endif %}
+    "pydantic-settings>=2.7.0",
+{%- if needs_redis %}
+    "redis[hiredis]>=5.2.0",
+{%- endif %}
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "httpx>=0.28.0",
+{%- if needs_postgres %}
+    "testcontainers[postgres]>=4.9.0",
+{%- endif %}
+{%- if needs_redis %}
+    "testcontainers[redis]>=4.9.0",
+{%- endif %}
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

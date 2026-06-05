@@ -1,0 +1,20 @@
+_subdirectory: .
+
+service_name:
+  type: str
+  help: "Name of the service (e.g., notifications)"
+
+port:
+  type: int
+  help: "Port number for the service"
+  default: 8003
+
+needs_postgres:
+  type: bool
+  help: "Does this service need a PostgreSQL database?"
+  default: true
+
+needs_redis:
+  type: bool
+  help: "Does this service need Redis?"
+  default: false

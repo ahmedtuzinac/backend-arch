@@ -1,0 +1,57 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+{%- if needs_postgres %}
+from tortoise import Tortoise
+{%- endif %}
+
+from app.config import settings
+{%- if needs_redis %}
+from app.dependencies import close_redis
+{%- endif %}
+from core_shared.logging import setup_logging
+from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
+
+{%- if needs_postgres %}
+
+TORTOISE_ORM = {
+    "connections": {"default": settings.database_url},
+    "apps": {
+        "models": {
+            "models": ["aerich.models"],
+            "default_connection": "default",
+        }
+    },
+}
+{%- endif %}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    setup_logging(log_level=settings.log_level)
+{%- if needs_postgres %}
+    await Tortoise.init(config=TORTOISE_ORM)
+    await Tortoise.generate_schemas()
+{%- endif %}
+    yield
+{%- if needs_redis %}
+    await close_redis()
+{%- endif %}
+{%- if needs_postgres %}
+    await Tortoise.close_connections()
+{%- endif %}
+
+
+app = FastAPI(
+    title=settings.app_name,
+    lifespan=lifespan,
+)
+
+setup_cors(app)
+setup_error_handler(app)
+app.add_middleware(RequestIdMiddleware)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

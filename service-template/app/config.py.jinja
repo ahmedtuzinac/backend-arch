@@ -1,0 +1,15 @@
+from core_shared.config import BaseAppSettings
+
+
+class {{ service_name | capitalize }}Settings(BaseAppSettings):
+{%- if needs_postgres %}
+    database_url: str = "postgres://postgres:postgres@localhost:5432/{{ service_name }}_db"
+{%- endif %}
+{%- if needs_redis %}
+    redis_url: str = "redis://localhost:6379/0"
+{%- endif %}
+    host: str = "0.0.0.0"
+    port: int = {{ port }}
+
+
+settings = {{ service_name | capitalize }}Settings()
