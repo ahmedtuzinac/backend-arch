@@ -12,7 +12,7 @@ async def test_create_user(init_db):
     assert user.id is not None
     assert user.email == "test@example.com"
     assert user.is_active is True
-    assert user.is_superuser is False
+    assert user.role == "employee"
 
 
 @pytest.mark.asyncio

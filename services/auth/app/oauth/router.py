@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, require_role
 from app.oauth.schemas import (
     AuthorizationRequest,
     OAuthClientCreate,
@@ -16,7 +16,7 @@ from app.oauth.service import (
     exchange_authorization_code,
 )
 from app.tokens.schemas import TokenResponse
-from app.users.models import User
+from app.users.models import User, UserRole
 
 router = APIRouter(prefix="/oauth", tags=["oauth"])
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/oauth", tags=["oauth"])
 @router.post("/clients", response_model=OAuthClientResponse, status_code=status.HTTP_201_CREATED)
 async def register_client(
     data: OAuthClientCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_role(UserRole.SYSTEM, UserRole.ADMIN))],
 ):
     return await create_oauth_client(data)
 

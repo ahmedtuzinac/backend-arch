@@ -15,7 +15,7 @@ async def create_token_pair(
 ) -> TokenResponse:
     scopes = scopes or []
     access_token = create_access_token(
-        data={"sub": str(user.id), "scopes": scopes},
+        data={"sub": str(user.id), "role": user.role, "scopes": scopes},
         secret_key=settings.jwt_secret_key,
         expires_delta=timedelta(minutes=settings.jwt_access_token_expire_minutes),
     )

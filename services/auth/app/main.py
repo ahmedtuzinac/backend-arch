@@ -27,7 +27,7 @@ async def ensure_admin_user() -> None:
     """Create default admin user if it doesn't exist."""
     import bcrypt
 
-    from app.users.models import User
+    from app.users.models import User, UserRole
 
     existing = await User.get_or_none(email=settings.admin_email)
     if existing is None:
@@ -35,7 +35,7 @@ async def ensure_admin_user() -> None:
         await User.create(
             email=settings.admin_email,
             hashed_password=hashed,
-            is_superuser=True,
+            role=UserRole.ADMIN,
         )
         structlog.get_logger().info("admin_user_created", email=settings.admin_email)
 
