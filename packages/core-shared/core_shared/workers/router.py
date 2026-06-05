@@ -1,27 +1,26 @@
 from fastapi import APIRouter, HTTPException, status
 
+from core_shared.pagination import PaginatedResponse, paginate
 from core_shared.workers.models import TaskLog
-from core_shared.workers.schemas import TaskLogListResponse, TaskLogResponse
+from core_shared.workers.schemas import TaskLogResponse
 
 task_router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@task_router.get("/", response_model=TaskLogListResponse)
+@task_router.get("/", response_model=PaginatedResponse[TaskLogResponse])
 async def list_tasks(
     status_filter: str | None = None,
     task_name: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    page: int = 1,
+    per_page: int = 20,
 ):
-    query = TaskLog.all()
+    query = TaskLog.all().order_by("-created_at")
     if status_filter:
         query = query.filter(status=status_filter)
     if task_name:
         query = query.filter(task_name=task_name)
 
-    total = await query.count()
-    tasks = await query.order_by("-created_at").offset(offset).limit(limit)
-    return TaskLogListResponse(tasks=tasks, total=total)
+    return await paginate(query, page=page, per_page=per_page)
 
 
 @task_router.get("/{job_id}", response_model=TaskLogResponse)

@@ -20,8 +20,3 @@ class TaskLogResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
-
-
-class TaskLogListResponse(BaseModel):
-    tasks: list[TaskLogResponse]
-    total: int
