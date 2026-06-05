@@ -2,17 +2,15 @@ import asyncio
 import os
 from collections.abc import AsyncGenerator
 
-os.environ["TESTCONTAINERS_RYUK_DISABLED"] = "true"
-
 import pytest
 from httpx import ASGITransport, AsyncClient
 from testcontainers.postgres import PostgresContainer
 from tortoise import Tortoise
 
+os.environ["TESTCONTAINERS_RYUK_DISABLED"] = "true"
 
 TORTOISE_MODELS = [
-    "app.users.models",
-    "app.oauth.models",
+    "app.connections.models",
 ]
 
 
