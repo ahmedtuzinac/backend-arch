@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from tortoise import Tortoise
 
 from app.config import settings
+from app.tokens.router import router as tokens_router
 from app.users.router import router as users_router
 from core_shared.logging import setup_logging
 from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
@@ -38,6 +39,7 @@ setup_error_handler(app)
 app.add_middleware(RequestIdMiddleware)
 
 app.include_router(users_router)
+app.include_router(tokens_router)
 
 
 @app.get("/health")
