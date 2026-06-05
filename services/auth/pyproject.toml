@@ -12,6 +12,7 @@ dependencies = [
     "pydantic[email]>=2.7.0",
     "passlib[bcrypt]>=1.7.4",
     "redis[hiredis]>=5.2.0",
+    "python-multipart>=0.0.18",
 ]
 
 [project.optional-dependencies]
