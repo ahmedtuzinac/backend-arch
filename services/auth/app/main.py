@@ -25,15 +25,18 @@ TORTOISE_ORM = {
 
 async def ensure_admin_user() -> None:
     """Create default admin user if it doesn't exist."""
+    import bcrypt
+
     from app.users.models import User
-    from app.users.schemas import UserCreate
-    from app.users.service import create_user
 
     existing = await User.get_or_none(email=settings.admin_email)
     if existing is None:
-        user = await create_user(UserCreate(email=settings.admin_email, password=settings.admin_password))
-        user.is_superuser = True
-        await user.save()
+        hashed = bcrypt.hashpw(settings.admin_password.encode(), bcrypt.gensalt()).decode()
+        await User.create(
+            email=settings.admin_email,
+            hashed_password=hashed,
+            is_superuser=True,
+        )
         structlog.get_logger().info("admin_user_created", email=settings.admin_email)
 
 

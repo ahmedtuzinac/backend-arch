@@ -11,7 +11,7 @@ class AuthSettings(BaseAppSettings):
 
     oauth2_authorization_code_expire_minutes: int = 10
 
-    admin_email: str = "admin@localhost"
+    admin_email: str = "admin@admin.local"
     admin_password: str = "admin"
 
     host: str = "0.0.0.0"
