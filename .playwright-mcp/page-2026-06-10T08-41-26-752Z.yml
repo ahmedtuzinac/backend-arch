@@ -1,0 +1,11 @@
+- generic [ref=e17]:
+  - heading "Sign in" [level=1] [ref=e18]
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - generic [ref=e21]: Email
+      - textbox "Email" [active] [ref=e22]:
+        - /placeholder: admin@admin.local
+    - generic [ref=e23]:
+      - generic [ref=e24]: Password
+      - textbox "Password" [ref=e25]
+    - button "Sign in" [ref=e26]

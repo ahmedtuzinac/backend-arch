@@ -1,8 +1,17 @@
-import { useEffect, useState } from 'react';
-import { listUsers, createUser, updateUser, deactivateUser, type User } from '../../api/admin';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  listUsers,
+  createUser,
+  updateUser,
+  deactivateUser,
+  getOnlineUsers,
+  type User,
+  type UserFilters,
+} from '../../api/admin';
 
 export default function Users() {
   const [users, setUsers] = useState<User[]>([]);
+  const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(0);
   const [total, setTotal] = useState(0);
@@ -10,21 +19,64 @@ export default function Users() {
   const [editUser, setEditUser] = useState<User | null>(null);
   const [error, setError] = useState('');
 
-  const loadUsers = async (p = page) => {
-    try {
-      const data = await listUsers(p);
-      setUsers(data.items);
-      setPages(data.pages);
-      setTotal(data.total);
-      setPage(data.page);
-    } catch {
-      setError('Failed to load users');
-    }
+  // Filters
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('desc');
+
+  const loadUsers = useCallback(
+    async (p = page) => {
+      try {
+        const filters: UserFilters = {
+          page: p,
+          search: search || undefined,
+          role: roleFilter || undefined,
+          isActive: statusFilter || undefined,
+          sortBy,
+          sortOrder,
+        };
+        const data = await listUsers(filters);
+        setUsers(data.items);
+        setPages(data.pages);
+        setTotal(data.total);
+        setPage(data.page);
+      } catch {
+        setError('Failed to load users');
+      }
+    },
+    [search, roleFilter, statusFilter, sortBy, sortOrder, page],
+  );
+
+  const loadOnline = async () => {
+    const ids = await getOnlineUsers();
+    setOnlineUserIds(ids);
   };
 
   useEffect(() => {
-    loadUsers();
+    loadUsers(1);
+  }, [search, roleFilter, statusFilter, sortBy, sortOrder]);
+
+  useEffect(() => {
+    loadOnline();
+    const interval = setInterval(loadOnline, 5000);
+    return () => clearInterval(interval);
   }, []);
+
+  const toggleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortIcon = (field: string) => {
+    if (sortBy !== field) return ' ↕';
+    return sortOrder === 'asc' ? ' ↑' : ' ↓';
+  };
 
   return (
     <div>
@@ -34,22 +86,72 @@ export default function Users() {
           <p className="text-sm text-gray-500">{total} total</p>
         </div>
         <button
-          onClick={() => { setShowCreate(true); setEditUser(null); }}
+          onClick={() => {
+            setShowCreate(true);
+            setEditUser(null);
+          }}
           className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800"
         >
           Add user
         </button>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-md">{error}</div>
-      )}
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-md">{error}</div>}
+
+      {/* Filters */}
+      <div className="mb-4 flex gap-3 items-center">
+        <input
+          type="text"
+          placeholder="Search by email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-gray-900"
+        />
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+        >
+          <option value="">All roles</option>
+          <option value="employee">Employee</option>
+          <option value="admin">Admin</option>
+          <option value="system">System</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+        >
+          <option value="">All statuses</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+        {(search || roleFilter || statusFilter) && (
+          <button
+            onClick={() => {
+              setSearch('');
+              setRoleFilter('');
+              setStatusFilter('');
+            }}
+            className="text-sm text-gray-500 hover:text-gray-900"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
 
       {(showCreate || editUser) && (
         <UserForm
           user={editUser}
-          onClose={() => { setShowCreate(false); setEditUser(null); }}
-          onSaved={() => { setShowCreate(false); setEditUser(null); loadUsers(); }}
+          onClose={() => {
+            setShowCreate(false);
+            setEditUser(null);
+          }}
+          onSaved={() => {
+            setShowCreate(false);
+            setEditUser(null);
+            loadUsers();
+          }}
         />
       )}
 
@@ -57,57 +159,89 @@ export default function Users() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 w-8"></th>
+              <th
+                className="text-left px-4 py-3 font-medium text-gray-600 cursor-pointer hover:text-gray-900"
+                onClick={() => toggleSort('email')}
+              >
+                Email{sortIcon('email')}
+              </th>
+              <th
+                className="text-left px-4 py-3 font-medium text-gray-600 cursor-pointer hover:text-gray-900"
+                onClick={() => toggleSort('role')}
+              >
+                Role{sortIcon('role')}
+              </th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Created</th>
+              <th
+                className="text-left px-4 py-3 font-medium text-gray-600 cursor-pointer hover:text-gray-900"
+                onClick={() => toggleSort('created_at')}
+              >
+                Created{sortIcon('created_at')}
+              </th>
               <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b border-gray-100 last:border-0">
-                <td className="px-4 py-3 text-gray-900">{user.email}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${
-                    user.role === 'admin' ? 'bg-purple-100 text-purple-700' :
-                    user.role === 'system' ? 'bg-red-100 text-red-700' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${
-                    user.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {user.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-500">
-                  {new Date(user.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => { setEditUser(user); setShowCreate(false); }}
-                    className="text-gray-500 hover:text-gray-900 mr-3"
-                  >
-                    Edit
-                  </button>
-                  {user.is_active && (
-                    <button
-                      onClick={async () => {
-                        await deactivateUser(user.id);
-                        loadUsers();
-                      }}
-                      className="text-red-500 hover:text-red-700"
+            {users.map((user) => {
+              const isOnline = onlineUserIds.includes(String(user.id));
+              return (
+                <tr key={user.id} className="border-b border-gray-100 last:border-0">
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-block w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}
+                      title={isOnline ? 'Online' : 'Offline'}
+                    />
+                  </td>
+                  <td className="px-4 py-3 text-gray-900">{user.email}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded-full ${
+                        user.role === 'admin'
+                          ? 'bg-purple-100 text-purple-700'
+                          : user.role === 'system'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-gray-100 text-gray-600'
+                      }`}
                     >
-                      Deactivate
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded-full ${
+                        user.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {user.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">{new Date(user.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => {
+                        setEditUser(user);
+                        setShowCreate(false);
+                      }}
+                      className="text-gray-500 hover:text-gray-900 mr-3"
+                    >
+                      Edit
                     </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                    {user.is_active && (
+                      <button
+                        onClick={async () => {
+                          await deactivateUser(user.id);
+                          loadUsers();
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Deactivate
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -136,7 +270,6 @@ export default function Users() {
     </div>
   );
 }
-
 
 function UserForm({
   user,
@@ -243,9 +376,7 @@ function UserForm({
           )}
         </div>
 
-        {error && (
-          <div className="p-3 bg-red-50 text-red-600 text-sm rounded-md">{error}</div>
-        )}
+        {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-md">{error}</div>}
 
         <div className="flex gap-2">
           <button

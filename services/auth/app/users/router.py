@@ -41,12 +41,19 @@ async def list_users(
     per_page: int = 20,
     role: str | None = None,
     is_active: bool | None = None,
+    search: str | None = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
 ):
-    query = User.all().order_by("-created_at")
+    query = User.all()
     if role:
         query = query.filter(role=role)
     if is_active is not None:
         query = query.filter(is_active=is_active)
+    if search:
+        query = query.filter(email__icontains=search)
+    order_field = sort_by if sort_order == "asc" else f"-{sort_by}"
+    query = query.order_by(order_field)
     return await paginate(query, page=page, per_page=per_page)
 
 

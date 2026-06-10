@@ -1,6 +1,7 @@
 import { getAccessToken } from './auth';
 
 const AUTH_URL = '/auth';
+const WS_URL = '/ws';
 
 export interface User {
   id: number;
@@ -26,8 +27,27 @@ function authHeaders(): HeadersInit {
   };
 }
 
-export async function listUsers(page = 1, perPage = 20): Promise<PaginatedResponse<User>> {
-  const res = await fetch(`${AUTH_URL}/users/?page=${page}&per_page=${perPage}`, {
+export interface UserFilters {
+  page?: number;
+  perPage?: number;
+  role?: string;
+  isActive?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+export async function listUsers(filters: UserFilters = {}): Promise<PaginatedResponse<User>> {
+  const params = new URLSearchParams();
+  params.set('page', String(filters.page || 1));
+  params.set('per_page', String(filters.perPage || 20));
+  if (filters.role) params.set('role', filters.role);
+  if (filters.isActive) params.set('is_active', filters.isActive);
+  if (filters.search) params.set('search', filters.search);
+  if (filters.sortBy) params.set('sort_by', filters.sortBy);
+  if (filters.sortOrder) params.set('sort_order', filters.sortOrder);
+
+  const res = await fetch(`${AUTH_URL}/users/?${params}`, {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Failed to fetch users');
@@ -69,4 +89,11 @@ export async function deactivateUser(userId: number): Promise<void> {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Failed to deactivate user');
+}
+
+export async function getOnlineUsers(): Promise<string[]> {
+  const res = await fetch(`${WS_URL}/messages/online`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.user_ids;
 }
