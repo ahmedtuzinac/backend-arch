@@ -15,6 +15,22 @@ router = APIRouter(prefix="/users", tags=["users"])
 AdminUser = Annotated[User, Depends(require_role(UserRole.SYSTEM, UserRole.ADMIN))]
 
 
+# --- User endpoints (any authenticated user) - must be before /{user_id} ---
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
+    return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    data: UserUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return await update_user(current_user.id, data)
+
+
 # --- Admin endpoints ---
 
 
@@ -80,19 +96,3 @@ async def deactivate_user(_current_user: AdminUser, user_id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     user.is_active = False
     await user.save()
-
-
-# --- User endpoints (any authenticated user) ---
-
-
-@router.get("/me", response_model=UserResponse)
-async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
-    return current_user
-
-
-@router.patch("/me", response_model=UserResponse)
-async def update_me(
-    data: UserUpdate,
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    return await update_user(current_user.id, data)

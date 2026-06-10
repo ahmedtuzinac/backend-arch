@@ -23,8 +23,11 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
-export function setAccessToken(token: string | null): void {
-  accessToken = token;
+function setTokens(access: string, refresh: string | null): void {
+  accessToken = access;
+  if (refresh) {
+    localStorage.setItem('refresh_token', refresh);
+  }
 }
 
 export async function login(email: string, password: string): Promise<TokenResponse> {
@@ -44,8 +47,33 @@ export async function login(email: string, password: string): Promise<TokenRespo
   }
 
   const data: TokenResponse = await res.json();
-  accessToken = data.access_token;
+  setTokens(data.access_token, data.refresh_token);
   return data;
+}
+
+export async function restoreSession(): Promise<boolean> {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${AUTH_URL}/token/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!res.ok) {
+      localStorage.removeItem('refresh_token');
+      return false;
+    }
+
+    const data: TokenResponse = await res.json();
+    setTokens(data.access_token, data.refresh_token);
+    return true;
+  } catch {
+    localStorage.removeItem('refresh_token');
+    return false;
+  }
 }
 
 export async function getMe(): Promise<UserResponse> {
@@ -64,4 +92,5 @@ export async function getMe(): Promise<UserResponse> {
 
 export function logout(): void {
   accessToken = null;
+  localStorage.removeItem('refresh_token');
 }
