@@ -48,3 +48,23 @@ async def client(init_db) -> AsyncGenerator[AsyncClient]:
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture
+async def admin_client(init_db) -> AsyncGenerator[AsyncClient]:
+    """Client authenticated as admin user."""
+    import bcrypt
+    from app.main import app
+    from app.users.models import User, UserRole
+
+    hashed = bcrypt.hashpw(b"AdminPass123!", bcrypt.gensalt()).decode()
+    await User.create(email="testadmin@test.com", hashed_password=hashed, role=UserRole.ADMIN)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.post(
+            "/token",
+            data={"grant_type": "password", "username": "testadmin@test.com", "password": "AdminPass123!"},
+        )
+        token = response.json()["access_token"]
+        ac.headers["Authorization"] = f"Bearer {token}"
+        yield ac

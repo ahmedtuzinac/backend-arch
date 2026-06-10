@@ -1,0 +1,13 @@
+- generic [ref=e15]:
+  - navigation [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]: Dashboard
+      - generic [ref=e19]:
+        - generic [ref=e20]: admin@admin.localadmin
+        - button "Sign out" [ref=e21]
+  - main [ref=e22]:
+    - heading "Welcome, admin@admin.local" [level=1] [ref=e23]
+    - paragraph [ref=e24]:
+      - text: You are signed in as
+      - strong [ref=e25]: admin
+      - text: .

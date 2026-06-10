@@ -4,11 +4,11 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_register_enqueues_welcome_email(client):
+async def test_register_enqueues_welcome_email(admin_client):
     with patch("app.users.router.enqueue", new_callable=AsyncMock) as mock_enqueue:
         mock_enqueue.return_value = "fake-job-id"
 
-        response = await client.post(
+        response = await admin_client.post(
             "/users/register",
             json={
                 "email": "worker@example.com",

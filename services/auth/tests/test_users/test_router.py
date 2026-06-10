@@ -2,8 +2,8 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_register_user(client):
-    response = await client.post(
+async def test_register_user(admin_client):
+    response = await admin_client.post(
         "/users/register",
         json={
             "email": "new@example.com",
@@ -17,15 +17,15 @@ async def test_register_user(client):
 
 
 @pytest.mark.asyncio
-async def test_register_duplicate_email(client):
-    await client.post(
+async def test_register_duplicate_email(admin_client):
+    await admin_client.post(
         "/users/register",
         json={
             "email": "dup@example.com",
             "password": "StrongPass123!",
         },
     )
-    response = await client.post(
+    response = await admin_client.post(
         "/users/register",
         json={
             "email": "dup@example.com",
@@ -33,3 +33,15 @@ async def test_register_duplicate_email(client):
         },
     )
     assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_register_requires_admin(client):
+    response = await client.post(
+        "/users/register",
+        json={
+            "email": "nope@example.com",
+            "password": "StrongPass123!",
+        },
+    )
+    assert response.status_code == 401

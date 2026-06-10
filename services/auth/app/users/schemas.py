@@ -6,11 +6,14 @@ from pydantic import BaseModel, EmailStr
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    role: str = "employee"
 
 
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
+    role: str | None = None
+    is_active: bool | None = None
 
 
 class UserResponse(BaseModel):
