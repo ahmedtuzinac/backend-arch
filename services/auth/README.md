@@ -4,7 +4,7 @@ Authentication and authorization microservice with OAuth2, JWT, and role-based a
 
 ## Features
 
-- User registration and login (email/password)
+- Login (email/password) — no public registration, users are created by admin
 - OAuth2 full flow (authorization_code, client_credentials, refresh_token)
 - JWT access token (15min) + refresh token (7 days)
 - Role-based access control (system, admin, employee)
@@ -25,7 +25,6 @@ Authentication and authorization microservice with OAuth2, JWT, and role-based a
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `POST` | `/users/register` | - | Register new user (default role: employee) |
 | `GET` | `/users/me` | Any | Get current user profile |
 | `PATCH` | `/users/me` | Any | Update current user profile |
 
