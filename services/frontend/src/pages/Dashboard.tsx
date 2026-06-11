@@ -46,7 +46,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   const isAdmin = user.role === 'admin' || user.role === 'system';
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `block px-3 py-2 text-sm rounded-md ${
+    `flex items-center px-3 py-2.5 text-sm rounded-lg ${
       isActive ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
     }`;
 
@@ -54,14 +54,14 @@ export default function Dashboard({ onLogout }: DashboardProps) {
     <AppSettingsContext.Provider value={appSettings}>
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className="w-56 bg-white border-r border-gray-200 min-h-screen">
-        <div className="p-4 border-b border-gray-200">
+      <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
+        <div className="px-5 py-4 border-b border-gray-200">
           {appSettings.settings.app_logo_url && (
-            <img src={appSettings.settings.app_logo_url} alt="" className="h-6 mb-1" />
+            <img src={appSettings.settings.app_logo_url} alt="" className="h-7 mb-1" />
           )}
-          <span className="text-sm font-semibold" style={{ color: appSettings.settings.primary_color }}>{appSettings.settings.app_name}</span>
+          <span className="text-base font-semibold" style={{ color: appSettings.settings.primary_color }}>{appSettings.settings.app_name}</span>
         </div>
-        <nav className="p-2">
+        <nav className="p-3 space-y-1">
           <NavLink to="/" end className={linkClass}>
             <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" /></svg>
             Home
@@ -100,11 +100,11 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       {/* Main content */}
       <div className="flex-1">
         <header className="bg-white border-b border-gray-200">
-          <div className="px-6 py-3 flex items-center justify-end">
-            <div className="flex items-center gap-4">
+          <div className="px-6 py-4 flex items-center justify-end">
+            <div className="flex items-center gap-5">
               <NavLink to="/profile" className="text-sm text-gray-600 hover:text-gray-900">
                 {user.email}
-                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                <span className="ml-2 px-2.5 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                   {user.role}
                 </span>
               </NavLink>
