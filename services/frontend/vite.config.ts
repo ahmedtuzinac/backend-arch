@@ -12,7 +12,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/auth/, ''),
       },
       '/ws': {
-        target: 'http://localhost:8002',
+        target: 'http://localhost:8003',
         rewrite: (path) => path.replace(/^\/ws/, ''),
         ws: true,
       },

@@ -4,9 +4,17 @@
   --color-primary: #111827;
 }
 
-.btn-primary {
-  background-color: var(--color-primary);
+/* Primary buttons */
+.bg-gray-900 {
+  background-color: var(--color-primary) !important;
 }
-.btn-primary:hover {
-  opacity: 0.9;
+
+/* Active sidebar link */
+.bg-gray-100.text-gray-900 {
+  color: var(--color-primary) !important;
+}
+
+/* Focus rings */
+.focus\:ring-gray-900:focus {
+  --tw-ring-color: var(--color-primary) !important;
 }
