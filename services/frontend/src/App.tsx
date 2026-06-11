@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { restoreSession } from './api/auth';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -22,11 +23,28 @@ function App() {
     );
   }
 
-  if (!authenticated) {
-    return <Login onLogin={() => setAuthenticated(true)} />;
-  }
-
-  return <Dashboard onLogout={() => setAuthenticated(false)} />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            authenticated ? <Navigate to="/" /> : <Login onLogin={() => setAuthenticated(true)} />
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            authenticated ? (
+              <Dashboard onLogout={() => setAuthenticated(false)} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

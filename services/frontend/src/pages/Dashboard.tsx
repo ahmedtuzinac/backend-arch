@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
 import { getMe, logout } from '../api/auth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Users from './admin/Users';
@@ -13,11 +14,9 @@ interface User {
   role: string;
 }
 
-type Page = 'home' | 'users';
-
 export default function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [activePage, setActivePage] = useState<Page>('home');
+  const navigate = useNavigate();
   useWebSocket();
 
   useEffect(() => {
@@ -26,6 +25,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
   const handleLogout = () => {
     logout();
+    navigate('/login');
     onLogout();
   };
 
@@ -39,6 +39,11 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
   const isAdmin = user.role === 'admin' || user.role === 'system';
 
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `block px-3 py-2 text-sm rounded-md ${
+      isActive ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
+    }`;
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -47,23 +52,13 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           <span className="text-sm font-semibold text-gray-900">Dashboard</span>
         </div>
         <nav className="p-2">
-          <button
-            onClick={() => setActivePage('home')}
-            className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-              activePage === 'home' ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
+          <NavLink to="/" end className={linkClass}>
             Home
-          </button>
+          </NavLink>
           {isAdmin && (
-            <button
-              onClick={() => setActivePage('users')}
-              className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                activePage === 'users' ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
+            <NavLink to="/users" className={linkClass}>
               Users
-            </button>
+            </NavLink>
           )}
         </nav>
       </aside>
@@ -79,10 +74,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                   {user.role}
                 </span>
               </span>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-gray-500 hover:text-gray-900"
-              >
+              <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-900">
                 Sign out
               </button>
             </div>
@@ -90,17 +82,21 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         </header>
 
         <main className="p-6">
-          {activePage === 'home' && (
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900 mb-4">
-                Welcome, {user.email}
-              </h1>
-              <p className="text-sm text-gray-600">
-                You are signed in as <strong>{user.role}</strong>.
-              </p>
-            </div>
-          )}
-          {activePage === 'users' && isAdmin && <Users />}
+          <Routes>
+            <Route
+              index
+              element={
+                <div>
+                  <h1 className="text-lg font-semibold text-gray-900 mb-4">Welcome, {user.email}</h1>
+                  <p className="text-sm text-gray-600">
+                    You are signed in as <strong>{user.role}</strong>.
+                  </p>
+                </div>
+              }
+            />
+            {isAdmin && <Route path="users" element={<Users />} />}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
         </main>
       </div>
     </div>
