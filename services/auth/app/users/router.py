@@ -9,10 +9,79 @@ from app.users.schemas import UserCreate, UserResponse, UserUpdate
 from app.users.service import create_user, get_user_by_email, update_user
 from app.workers.enqueue import enqueue
 from core_shared.pagination import PaginatedResponse, paginate
+from core_shared.table import ColumnDef, FilterDef, TableConfig
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 AdminUser = Annotated[User, Depends(require_role(UserRole.SYSTEM, UserRole.ADMIN))]
+
+users_table_config = TableConfig(
+    name="users",
+    columns=[
+        ColumnDef(
+            key="email",
+            label="Email",
+            type="text",
+            sortable=True,
+        ),
+        ColumnDef(
+            key="role",
+            label="Role",
+            type="badge",
+            sortable=True,
+            options=["system", "admin", "employee"],
+            badge_colors={
+                "system": "bg-red-100 text-red-700",
+                "admin": "bg-purple-100 text-purple-700",
+                "employee": "bg-gray-100 text-gray-600",
+            },
+        ),
+        ColumnDef(
+            key="is_active",
+            label="Status",
+            type="boolean",
+        ),
+        ColumnDef(
+            key="created_at",
+            label="Created",
+            type="date",
+            sortable=True,
+        ),
+    ],
+    filters=[
+        FilterDef(
+            key="role",
+            label="Role",
+            type="select",
+            options=[
+                {"value": "employee", "label": "Employee"},
+                {"value": "admin", "label": "Admin"},
+                {"value": "system", "label": "System"},
+            ],
+        ),
+        FilterDef(
+            key="is_active",
+            label="Status",
+            type="select",
+            options=[
+                {"value": "true", "label": "Active"},
+                {"value": "false", "label": "Inactive"},
+            ],
+        ),
+    ],
+    searchable=True,
+    search_field="email",
+    search_placeholder="Search by email...",
+    actions=["edit", "deactivate"],
+)
+
+
+# --- Table config ---
+
+
+@router.get("/config", response_model=TableConfig)
+async def get_table_config(_current_user: AdminUser):
+    return users_table_config
 
 
 # --- User endpoints (any authenticated user) - must be before /{user_id} ---
