@@ -13,14 +13,23 @@ class ConnectionManager:
         self.rooms: dict[str, set[str]] = defaultdict(set)
 
     async def connect(self, websocket: WebSocket, user_id: str) -> None:
+        # Close existing connection for this user if any
+        old_ws = self.active_connections.get(user_id)
+        if old_ws:
+            try:
+                await old_ws.close()
+            except Exception:
+                pass
         await websocket.accept()
         self.active_connections[user_id] = websocket
         await logger.ainfo("ws_connected", user_id=user_id)
 
-    def disconnect(self, user_id: str) -> None:
-        self.active_connections.pop(user_id, None)
-        for room_users in self.rooms.values():
-            room_users.discard(user_id)
+    def disconnect(self, websocket: WebSocket, user_id: str) -> None:
+        # Only remove if this is still the active connection (not replaced by a newer one)
+        if self.active_connections.get(user_id) is websocket:
+            self.active_connections.pop(user_id, None)
+            for room_users in self.rooms.values():
+                room_users.discard(user_id)
 
     def join_room(self, user_id: str, room: str) -> None:
         self.rooms[room].add(user_id)

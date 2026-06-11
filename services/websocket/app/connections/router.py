@@ -66,5 +66,5 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = None):
                 )
 
     except WebSocketDisconnect:
-        manager.disconnect(user_id=user_id)
+        manager.disconnect(websocket=websocket, user_id=user_id)
         await logger.ainfo("ws_disconnected", user_id=user_id)
