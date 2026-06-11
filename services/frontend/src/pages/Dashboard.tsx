@@ -4,6 +4,7 @@ import { getMe, logout } from '../api/auth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Users from './admin/Users';
 import AuditLog from './admin/AuditLog';
+import Health from './admin/Health';
 import Profile from './Profile';
 
 interface DashboardProps {
@@ -68,6 +69,9 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               <NavLink to="/audit" className={linkClass}>
                 Audit Log
               </NavLink>
+              <NavLink to="/health" className={linkClass}>
+                Health
+              </NavLink>
             </>
           )}
         </nav>
@@ -107,6 +111,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             <Route path="profile" element={<Profile />} />
             {isAdmin && <Route path="users" element={<Users />} />}
             {isAdmin && <Route path="audit" element={<AuditLog />} />}
+            {isAdmin && <Route path="health" element={<Health />} />}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

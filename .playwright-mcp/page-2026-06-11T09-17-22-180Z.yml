@@ -1,0 +1,60 @@
+- generic [ref=e17]:
+  - complementary [ref=e18]:
+    - generic [ref=e19]: Dashboard
+    - navigation [ref=e20]:
+      - link "Home" [ref=e21] [cursor=pointer]:
+        - /url: /
+      - link "Profile" [ref=e22] [cursor=pointer]:
+        - /url: /profile
+      - link "Users" [active] [ref=e23] [cursor=pointer]:
+        - /url: /users
+  - generic [ref=e24]:
+    - banner [ref=e25]:
+      - generic [ref=e27]:
+        - link "admin@admin.localadmin" [ref=e28] [cursor=pointer]:
+          - /url: /profile
+        - button "Sign out" [ref=e29]
+    - main [ref=e30]:
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - heading "Users" [level=2] [ref=e39]
+            - paragraph [ref=e40]: 1 total
+          - button "Add user" [ref=e41]
+        - generic [ref=e42]:
+          - textbox "Search by email..." [ref=e43]
+          - combobox [ref=e44]:
+            - option "All roles" [selected]
+            - option "Employee"
+            - option "Admin"
+            - option "System"
+          - combobox [ref=e45]:
+            - option "All statuss" [selected]
+            - option "Active"
+            - option "Inactive"
+        - table [ref=e47]:
+          - rowgroup [ref=e48]:
+            - row "Email Role Status Created Actions" [ref=e49]:
+              - columnheader [ref=e50]
+              - columnheader "Email" [ref=e51] [cursor=pointer]:
+                - text: Email
+                - img [ref=e52]
+              - columnheader "Role" [ref=e54] [cursor=pointer]:
+                - text: Role
+                - img [ref=e55]
+              - columnheader "Status" [ref=e57]
+              - columnheader "Created" [ref=e58] [cursor=pointer]:
+                - text: Created
+                - img [ref=e59]
+              - columnheader "Actions" [ref=e61]
+          - rowgroup [ref=e62]:
+            - row "Online admin@admin.local admin Active 11/06/2026 Edit Deactivate" [ref=e63]:
+              - cell "Online" [ref=e64]:
+                - generic "Online" [ref=e65]
+              - cell "admin@admin.local" [ref=e66]
+              - cell "admin" [ref=e67]
+              - cell "Active" [ref=e68]
+              - cell "11/06/2026" [ref=e69]
+              - cell "Edit Deactivate" [ref=e70]:
+                - button "Edit" [ref=e71]
+                - button "Deactivate" [ref=e72]

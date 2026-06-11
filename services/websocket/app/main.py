@@ -7,6 +7,7 @@ from app.config import settings
 from app.connections.router import router as ws_router
 from app.dependencies import close_redis
 from app.handlers.router import router as handlers_router
+from core_shared.health import create_health_router
 from core_shared.logging import setup_logging
 from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
 
@@ -42,8 +43,4 @@ app.add_middleware(RequestIdMiddleware)
 
 app.include_router(ws_router)
 app.include_router(handlers_router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+app.include_router(create_health_router("websocket"))

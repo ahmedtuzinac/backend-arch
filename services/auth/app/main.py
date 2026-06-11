@@ -9,6 +9,7 @@ from app.oauth.router import router as oauth_router
 from app.tokens.router import router as tokens_router
 from app.users.router import router as users_router
 from core_shared.audit import audit_router
+from core_shared.health import create_health_router
 from core_shared.logging import setup_logging
 from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
 from core_shared.workers import task_router
@@ -71,8 +72,4 @@ app.include_router(tokens_router)
 app.include_router(oauth_router)
 app.include_router(audit_router)
 app.include_router(task_router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+app.include_router(create_health_router("auth"))
