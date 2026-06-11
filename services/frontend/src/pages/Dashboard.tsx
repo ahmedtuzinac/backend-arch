@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom'
 import { getMe, logout } from '../api/auth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Users from './admin/Users';
+import Profile from './Profile';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -55,6 +56,9 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           <NavLink to="/" end className={linkClass}>
             Home
           </NavLink>
+          <NavLink to="/profile" className={linkClass}>
+            Profile
+          </NavLink>
           {isAdmin && (
             <NavLink to="/users" className={linkClass}>
               Users
@@ -68,12 +72,12 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         <header className="bg-white border-b border-gray-200">
           <div className="px-6 py-3 flex items-center justify-end">
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
+              <NavLink to="/profile" className="text-sm text-gray-600 hover:text-gray-900">
                 {user.email}
                 <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
                   {user.role}
                 </span>
-              </span>
+              </NavLink>
               <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-900">
                 Sign out
               </button>
@@ -94,6 +98,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                 </div>
               }
             />
+            <Route path="profile" element={<Profile />} />
             {isAdmin && <Route path="users" element={<Users />} />}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
