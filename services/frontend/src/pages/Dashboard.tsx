@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMe, logout } from '../api/auth';
+import { useWebSocket } from '../hooks/useWebSocket';
 import Users from './admin/Users';
 
 interface DashboardProps {
@@ -17,6 +18,7 @@ type Page = 'home' | 'users';
 export default function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
   const [activePage, setActivePage] = useState<Page>('home');
+  useWebSocket();
 
   useEffect(() => {
     getMe().then(setUser).catch(() => onLogout());

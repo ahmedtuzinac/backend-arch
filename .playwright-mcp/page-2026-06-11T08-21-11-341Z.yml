@@ -1,0 +1,18 @@
+- generic [ref=e15]:
+  - complementary [ref=e16]:
+    - generic [ref=e17]: Dashboard
+    - navigation [ref=e18]:
+      - button "Home" [ref=e19]
+      - button "Users" [ref=e20]
+  - generic [ref=e21]:
+    - banner [ref=e22]:
+      - generic [ref=e24]:
+        - generic [ref=e25]: admin@admin.localadmin
+        - button "Sign out" [ref=e26]
+    - main [ref=e27]:
+      - generic [ref=e28]:
+        - heading "Welcome, admin@admin.local" [level=1] [ref=e29]
+        - paragraph [ref=e30]:
+          - text: You are signed in as
+          - strong [ref=e31]: admin
+          - text: .
