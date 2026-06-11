@@ -31,12 +31,26 @@ const STATUS_STYLES: Record<string, string> = {
   offline: 'bg-red-100 text-red-700',
 };
 
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  if (days > 0) return `${days}d ${hours}h ${minutes}m ${secs}s`;
+  if (hours > 0) return `${hours}h ${minutes}m ${secs}s`;
+  return `${minutes}m ${secs}s`;
+}
+
 export default function Health() {
   const [services, setServices] = useState<Record<string, ServiceHealth | null>>({});
+  const [fetchedAt, setFetchedAt] = useState<Record<string, number>>({});
+  const [tick, setTick] = useState(0);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
 
   const checkAll = async () => {
     const results: Record<string, ServiceHealth | null> = {};
+    const times: Record<string, number> = {};
+    const now = Math.floor(Date.now() / 1000);
     for (const svc of SERVICES) {
       try {
         const res = await fetch(svc.url, {
@@ -44,6 +58,7 @@ export default function Health() {
         });
         if (res.ok) {
           results[svc.name] = await res.json();
+          times[svc.name] = now;
         } else {
           results[svc.name] = null;
         }
@@ -52,14 +67,33 @@ export default function Health() {
       }
     }
     setServices(results);
+    setFetchedAt(times);
     setLastCheck(new Date());
   };
 
+  // Fetch health every 30 seconds
   useEffect(() => {
     checkAll();
-    const interval = setInterval(checkAll, 15000);
+    const interval = setInterval(checkAll, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Tick every second for live uptime
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getLiveUptime = (name: string): string => {
+    const health = services[name];
+    if (!health) return '-';
+    const fetched = fetchedAt[name] || 0;
+    const now = Math.floor(Date.now() / 1000);
+    const elapsed = now - fetched;
+    // Suppress unused tick warning - tick drives re-render
+    void tick;
+    return formatUptime(health.uptime_seconds + elapsed);
+  };
 
   const allOk = Object.values(services).every((s) => s?.status === 'ok');
   const anyOffline = Object.values(services).some((s) => s === null);
@@ -113,9 +147,7 @@ export default function Health() {
                     {isOffline ? 'offline' : health?.status}
                   </span>
                 </div>
-                {health && (
-                  <span className="text-sm text-gray-500">Uptime: {health.uptime}</span>
-                )}
+                <span className="text-sm text-gray-500 font-mono">{getLiveUptime(svc.name)}</span>
               </div>
 
               {health && Object.keys(health.checks).length > 0 && (
