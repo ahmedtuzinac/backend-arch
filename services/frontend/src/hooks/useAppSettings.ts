@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getAccessToken } from '../api/auth';
+import { useWSListener } from './useWebSocket';
 
 export interface AppSettings {
   app_name: string;
@@ -57,6 +58,14 @@ export function useLoadAppSettings() {
   useEffect(() => {
     document.documentElement.style.setProperty('--color-primary', settings.primary_color);
   }, [settings.primary_color]);
+
+  // Real-time: reload when settings are updated via WebSocket
+  useWSListener('settings_updated', (data) => {
+    const updated = data.settings as Record<string, string>;
+    if (updated) {
+      setSettings((prev) => ({ ...prev, ...updated }));
+    }
+  });
 
   return { settings, reload: load };
 }
