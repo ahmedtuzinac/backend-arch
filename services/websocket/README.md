@@ -1,15 +1,16 @@
 # WebSocket Service
 
-Real-time communication microservice with WebSocket connections, rooms, and message broadcasting.
+Real-time communication microservice with WebSocket connections, rooms, message broadcasting, and online status tracking.
 
 ## Features
 
 - WebSocket connections with JWT authentication
 - Room management (join, leave, broadcast)
 - Direct messaging between users
+- Online status tracking (list connected users)
 - REST API for sending messages from other services
 - Redis Pub/Sub ready for multi-instance broadcasting
-- ConnectionManager tracks active connections in memory
+- Health check with database status and uptime
 
 ## API Endpoints
 
@@ -24,7 +25,8 @@ Real-time communication microservice with WebSocket connections, rooms, and mess
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `POST` | `/messages/send` | - | Send message to user/room/broadcast |
-| `GET` | `/health` | - | Health check |
+| `GET` | `/messages/online` | - | List currently connected user IDs |
+| `GET` | `/health` | - | Service status, uptime, DB check |
 
 ## WebSocket Message Types
 
@@ -46,26 +48,9 @@ Real-time communication microservice with WebSocket connections, rooms, and mess
 {"type": "direct", "content": "Hello!", "from": "456"}
 ```
 
-## REST API — Send Message
+## Online Status
 
-Other services can push messages to connected users via HTTP:
-
-```bash
-# Send to specific user
-curl -X POST http://websocket:8002/messages/send \
-  -H "Content-Type: application/json" \
-  -d '{"user_id": "123", "content": "You have a new notification"}'
-
-# Broadcast to room
-curl -X POST http://websocket:8002/messages/send \
-  -H "Content-Type: application/json" \
-  -d '{"room": "general", "content": "System update"}'
-
-# Broadcast to all
-curl -X POST http://websocket:8002/messages/send \
-  -H "Content-Type: application/json" \
-  -d '{"content": "Server maintenance in 5 minutes"}'
-```
+The frontend polls `GET /messages/online` every 5 seconds to show green/gray dots next to users in the admin dashboard. Users are considered online when they have an active WebSocket connection (auto-connected on login, disconnected on tab close).
 
 ## Environment Variables
 

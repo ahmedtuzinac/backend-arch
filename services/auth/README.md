@@ -4,12 +4,16 @@ Authentication and authorization microservice with OAuth2, JWT, and role-based a
 
 ## Features
 
-- Login (email/password) — no public registration, users are created by admin
+- Login (email/password) -- no public registration, users are created by admin
 - OAuth2 full flow (authorization_code, client_credentials, refresh_token)
 - JWT access token (15min) + refresh token (7 days)
 - Role-based access control (system, admin, employee)
 - Auto-created admin user on startup
-- Background workers (arq) for async tasks
+- User CRUD with admin-only endpoints
+- Background workers (arq) -- welcome email, token cleanup cron
+- Audit logging on all user mutations
+- Dynamic table config for frontend
+- Health check with database status and uptime
 
 ## Roles
 
@@ -21,12 +25,23 @@ Authentication and authorization microservice with OAuth2, JWT, and role-based a
 
 ## API Endpoints
 
-### Users
+### Users (Admin only)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/users/` | Admin | List users (paginated, filterable, sortable) |
+| `GET` | `/users/config` | Admin | Table config for frontend DynamicTable |
+| `POST` | `/users/register` | Admin | Create new user |
+| `GET` | `/users/{id}` | Admin | Get user by ID |
+| `PATCH` | `/users/{id}` | Admin | Update user (email, password, role, status) |
+| `DELETE` | `/users/{id}` | Admin | Deactivate user |
+
+### Users (Any authenticated)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `GET` | `/users/me` | Any | Get current user profile |
-| `PATCH` | `/users/me` | Any | Update current user profile |
+| `PATCH` | `/users/me` | Any | Update own email/password |
 
 ### Tokens
 
@@ -40,23 +55,35 @@ Authentication and authorization microservice with OAuth2, JWT, and role-based a
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `POST` | `/oauth/clients` | Admin+ | Register OAuth2 client |
+| `POST` | `/oauth/clients` | Admin | Register OAuth2 client |
 | `POST` | `/oauth/authorize` | Any | Get authorization code |
 | `POST` | `/oauth/token` | - | Exchange code/credentials for token |
 | `POST` | `/oauth/revoke` | - | Revoke token |
+
+### Audit
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/audit/` | - | List audit logs (paginated, filterable) |
 
 ### Tasks
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/tasks/` | - | List background tasks (filter by status, name) |
+| `GET` | `/tasks/` | - | List background tasks (paginated) |
 | `GET` | `/tasks/{job_id}` | - | Get task details and status |
+
+### Health
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/health` | - | Service status, uptime, DB check |
 
 ## Background Workers
 
 | Task | Trigger | Description |
 |------|---------|-------------|
-| `send_welcome_email` | On user registration | Sends welcome email to new user |
+| `send_welcome_email` | On user creation | Sends welcome email to new user |
 | `cleanup_expired_tokens` | Cron (every 6h) | Removes expired refresh tokens |
 
 ## Environment Variables

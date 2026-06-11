@@ -1,13 +1,20 @@
 # Frontend Service
 
-React + TypeScript + Vite + Tailwind CSS frontend application.
+React admin dashboard with TypeScript, Vite, and Tailwind CSS.
 
 ## Features
 
 - Login page (email/password, no public registration)
-- Dashboard with user info and role display
-- JWT authentication (token in memory)
-- Nginx proxy to backend services in production
+- Session persistence with refresh token
+- WebSocket auto-connect for online presence
+- Admin dashboard with sidebar navigation:
+  - **Home** -- welcome page
+  - **Health** -- live service status, uptime ticker, DB checks
+  - **Users** -- DynamicTable with filters, sorting, online status, CRUD
+  - **Profile** -- update email and password
+  - **Audit Log** -- who did what, filterable by action
+- DynamicTable component (backend-driven columns, filters, sorting, pagination)
+- Role-based UI (admin pages hidden for non-admin users)
 
 ## Tech Stack
 
@@ -15,6 +22,7 @@ React + TypeScript + Vite + Tailwind CSS frontend application.
 - TypeScript
 - Vite
 - Tailwind CSS v4
+- react-router-dom
 
 ## Development
 
@@ -24,7 +32,9 @@ npm install
 npm run dev
 ```
 
-Runs on `http://localhost:3000`. Vite proxy forwards `/auth/*` to auth service on port 8001.
+Runs on `http://localhost:3000`. Vite proxy forwards:
+- `/auth/*` to auth service (port 8001)
+- `/ws/*` to websocket service (port 8002)
 
 ## Production (Podman)
 
@@ -32,7 +42,11 @@ Multi-stage build: Vite builds static files, served by Nginx with proxy to backe
 
 ## Pages
 
-| Path | Auth | Description |
-|------|------|-------------|
-| `/` | No | Login page |
-| `/` | Yes | Dashboard |
+| Path | Auth | Role | Description |
+|------|------|------|-------------|
+| `/login` | No | - | Login page |
+| `/` | Yes | Any | Home |
+| `/health` | Yes | Admin | Service health dashboard |
+| `/users` | Yes | Admin | User management |
+| `/profile` | Yes | Any | Edit own profile |
+| `/audit` | Yes | Admin | Audit log viewer |
