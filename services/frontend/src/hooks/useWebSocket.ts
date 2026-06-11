@@ -16,7 +16,6 @@ export function onWSEvent(type: string, listener: WSListener): () => void {
 
 function dispatch(data: Record<string, unknown>) {
   const type = data.type as string;
-  console.log('[WS]', type, data, 'listeners:', listeners.has(type) ? listeners.get(type)!.size : 0);
   if (type && listeners.has(type)) {
     listeners.get(type)!.forEach((fn) => fn(data));
   }
