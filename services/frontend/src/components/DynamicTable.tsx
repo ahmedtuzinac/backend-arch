@@ -125,8 +125,23 @@ export default function DynamicTable({
   };
 
   const sortIcon = (key: string) => {
-    if (sortBy !== key) return ' ↕';
-    return sortOrder === 'asc' ? ' ↑' : ' ↓';
+    const inactive = (
+      <svg className="inline w-3.5 h-3.5 ml-1 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M7 10l5-5 5 5M7 14l5 5 5-5" />
+      </svg>
+    );
+    const asc = (
+      <svg className="inline w-3.5 h-3.5 ml-1 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M7 14l5-5 5 5" />
+      </svg>
+    );
+    const desc = (
+      <svg className="inline w-3.5 h-3.5 ml-1 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M7 10l5 5 5-5" />
+      </svg>
+    );
+    if (sortBy !== key) return inactive;
+    return sortOrder === 'asc' ? asc : desc;
   };
 
   const renderCell = (col: ColumnDef, value: unknown) => {
