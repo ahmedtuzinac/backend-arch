@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getAccessToken } from '../api/auth';
+import { useAppSettings } from '../hooks/useAppSettings';
 
 interface ColumnDef {
   key: string;
@@ -144,6 +145,20 @@ export default function DynamicTable({
     return sortOrder === 'asc' ? asc : desc;
   };
 
+  const { settings: appSettings } = useAppSettings();
+
+  const formatDate = (value: string) => {
+    const d = new Date(value);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    switch (appSettings.date_format) {
+      case 'MM/DD/YYYY': return `${month}/${day}/${year}`;
+      case 'YYYY-MM-DD': return `${year}-${month}-${day}`;
+      default: return `${day}/${month}/${year}`;
+    }
+  };
+
   const renderCell = (col: ColumnDef, value: unknown) => {
     if (col.type === 'badge') {
       const colorClass = col.badge_colors?.[String(value)] || 'bg-gray-100 text-gray-600';
@@ -158,7 +173,7 @@ export default function DynamicTable({
       );
     }
     if (col.type === 'date' || col.type === 'datetime') {
-      return new Date(String(value)).toLocaleDateString();
+      return formatDate(String(value));
     }
     return String(value ?? '');
   };
