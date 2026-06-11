@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import DynamicTable from '../../components/DynamicTable';
 import { createUser, updateUser, deactivateUser, getOnlineUsers, type User } from '../../api/admin';
+import { getMe } from '../../api/auth';
 
 export default function Users() {
+  const [currentUserId, setCurrentUserId] = useState(0);
+
+  useEffect(() => {
+    getMe().then((u) => setCurrentUserId(u.id));
+  }, []);
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
@@ -44,6 +50,7 @@ export default function Users() {
         title="Users"
         showOnlineStatus
         onlineUserIds={onlineUserIds}
+        userId={currentUserId}
         onAdd={() => {
           setShowForm(true);
           setEditUser(null);

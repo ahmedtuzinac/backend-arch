@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getAccessToken } from '../api/auth';
 import { useAppSettings } from '../hooks/useAppSettings';
+import { useWSListener } from '../hooks/useWebSocket';
 
 interface ColumnDef {
   key: string;
@@ -45,6 +46,7 @@ interface DynamicTableProps {
   onDeactivate?: (item: Record<string, unknown>) => void;
   onlineUserIds?: string[];
   showOnlineStatus?: boolean;
+  userId?: number;
 }
 
 export default function DynamicTable({
@@ -56,6 +58,7 @@ export default function DynamicTable({
   onDeactivate,
   onlineUserIds = [],
   showOnlineStatus = false,
+  userId = 0,
 }: DynamicTableProps) {
   const [config, setConfig] = useState<TableConfig | null>(null);
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
@@ -68,19 +71,64 @@ export default function DynamicTable({
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+  const [showColumnPicker, setShowColumnPicker] = useState(false);
 
-  const headers = (): HeadersInit => ({
+  const hdrs = (): HeadersInit => ({
     Authorization: `Bearer ${getAccessToken()}`,
     'Content-Type': 'application/json',
   });
 
+  const loadPreferences = async (tableName: string) => {
+    try {
+      const res = await fetch(`/auth/table-preferences/${tableName}?user_id=${userId}`, { headers: hdrs() });
+      if (res.ok) {
+        const data = await res.json();
+        setHiddenColumns(data.hidden_columns || []);
+        if (data.column_order?.length) setColumnOrder(data.column_order);
+      }
+    } catch { /* ignore */ }
+  };
+
+  const savePreferences = async (hidden: string[], order: string[]) => {
+    if (!config) return;
+    try {
+      await fetch(`/auth/table-preferences/${config.name}?user_id=${userId}`, {
+        method: 'PUT',
+        headers: hdrs(),
+        body: JSON.stringify({ hidden_columns: hidden, column_order: order }),
+      });
+    } catch { /* ignore */ }
+  };
+
+  const toggleColumn = (key: string) => {
+    const updated = hiddenColumns.includes(key)
+      ? hiddenColumns.filter((k) => k !== key)
+      : [...hiddenColumns, key];
+    setHiddenColumns(updated);
+    savePreferences(updated, columnOrder);
+  };
+
+  const moveColumn = (key: string, direction: -1 | 1) => {
+    const order = columnOrder.length ? [...columnOrder] : config!.columns.map((c) => c.key);
+    const idx = order.indexOf(key);
+    if (idx < 0) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= order.length) return;
+    [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
+    setColumnOrder(order);
+    savePreferences(hiddenColumns, order);
+  };
+
   useEffect(() => {
-    fetch(configUrl, { headers: headers() })
+    fetch(configUrl, { headers: hdrs() })
       .then((r) => r.json())
       .then((c: TableConfig) => {
         setConfig(c);
         const defaultSort = c.columns.find((col) => col.sortable);
         if (defaultSort) setSortBy(defaultSort.key);
+        loadPreferences(c.name);
       })
       .catch(() => setError('Failed to load table config'));
   }, [configUrl]);
@@ -98,7 +146,7 @@ export default function DynamicTable({
         if (sortBy) params.set('sort_by', sortBy);
         params.set('sort_order', sortOrder);
 
-        const res = await fetch(`${dataUrl}?${params}`, { headers: headers() });
+        const res = await fetch(`${dataUrl}?${params}`, { headers: hdrs() });
         if (!res.ok) throw new Error();
         const data: PaginatedResponse = await res.json();
         setItems(data.items);
@@ -115,6 +163,13 @@ export default function DynamicTable({
   useEffect(() => {
     if (config) loadData(1);
   }, [config, search, filters, sortBy, sortOrder]);
+
+  // Real-time: reload when table is updated via WebSocket
+  useWSListener('table_updated', (data) => {
+    if (config && data.table === config.name) {
+      loadData();
+    }
+  });
 
   const toggleSort = (key: string) => {
     if (sortBy === key) {
@@ -183,6 +238,13 @@ export default function DynamicTable({
   }
 
   const hasActiveFilters = search || Object.values(filters).some((v) => v);
+  const orderedColumns = columnOrder.length
+    ? columnOrder.map((key) => config.columns.find((c) => c.key === key)).filter(Boolean) as ColumnDef[]
+    : config.columns;
+  const visibleColumns = orderedColumns.filter((col) => !hiddenColumns.includes(col.key));
+  const pickerColumns = columnOrder.length
+    ? columnOrder.map((key) => config.columns.find((c) => c.key === key)).filter(Boolean) as ColumnDef[]
+    : config.columns;
 
   return (
     <div>
@@ -191,11 +253,65 @@ export default function DynamicTable({
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <p className="text-sm text-gray-500">{total} total</p>
         </div>
-        {onAdd && (
-          <button onClick={onAdd} className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800">
-            Add {config.name.slice(0, -1)}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => setShowColumnPicker(!showColumnPicker)}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              <svg className="inline w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+              Columns
+              {hiddenColumns.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs bg-gray-200 rounded-full">{config.columns.length - hiddenColumns.length}/{config.columns.length}</span>
+              )}
+            </button>
+            {showColumnPicker && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowColumnPicker(false)} />
+                <div className="absolute right-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                  <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">Columns</span>
+                    <button onClick={() => setShowColumnPicker(false)} className="text-gray-400 hover:text-gray-600 text-sm">&times;</button>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto py-1">
+                    {pickerColumns.map((col, idx) => (
+                      <div key={col.key} className="flex items-center px-3 py-1.5 hover:bg-gray-50 group">
+                        <input
+                          type="checkbox"
+                          checked={!hiddenColumns.includes(col.key)}
+                          onChange={() => toggleColumn(col.key)}
+                          className="mr-2 rounded border-gray-300"
+                        />
+                        <span className="text-sm flex-1">{col.label}</span>
+                        <div className="opacity-0 group-hover:opacity-100 flex gap-0.5">
+                          <button
+                            onClick={() => moveColumn(col.key, -1)}
+                            disabled={idx === 0}
+                            className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 14l5-5 5 5" /></svg>
+                          </button>
+                          <button
+                            onClick={() => moveColumn(col.key, 1)}
+                            disabled={idx === pickerColumns.length - 1}
+                            className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 10l5 5 5-5" /></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          {onAdd && (
+            <button onClick={onAdd} className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800">
+              Add {config.name.slice(0, -1)}
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-md">{error}</div>}
@@ -247,7 +363,7 @@ export default function DynamicTable({
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
               {showOnlineStatus && <th className="text-left px-4 py-3 font-medium text-gray-600 w-8"></th>}
-              {config.columns.map((col) => (
+              {visibleColumns.map((col) => (
                 <th
                   key={col.key}
                   className={`text-left px-4 py-3 font-medium text-gray-600 ${col.sortable ? 'cursor-pointer hover:text-gray-900' : ''}`}
@@ -275,7 +391,7 @@ export default function DynamicTable({
                       />
                     </td>
                   )}
-                  {config.columns.map((col) => (
+                  {visibleColumns.map((col) => (
                     <td key={col.key} className="px-4 py-3 text-gray-900">
                       {renderCell(col, item[col.key])}
                     </td>

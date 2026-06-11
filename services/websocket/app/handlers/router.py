@@ -12,6 +12,13 @@ async def send(data: SendMessageRequest):
     return await send_message(data)
 
 
+@router.post("/broadcast")
+async def broadcast(data: dict):
+    mgr = get_manager()
+    count = await mgr.broadcast_all(data)
+    return {"recipients": count}
+
+
 @router.get("/online")
 async def online_users():
     mgr = get_manager()

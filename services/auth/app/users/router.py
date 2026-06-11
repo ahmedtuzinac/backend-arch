@@ -9,8 +9,21 @@ from app.users.schemas import UserCreate, UserResponse, UserUpdate
 from app.users.service import create_user, get_user_by_email, update_user
 from app.workers.enqueue import enqueue
 from core_shared.audit import log_action
+from core_shared.communication import ServiceClient
 from core_shared.pagination import PaginatedResponse, paginate
 from core_shared.table import ColumnDef, FilterDef, TableConfig
+
+ws_client = ServiceClient(base_url="http://websocket:8002")
+
+
+async def notify_table_update(table: str) -> None:
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        await ws_client.post("/messages/broadcast", json={
+            "type": "table_updated",
+            "table": table,
+        })
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -168,6 +181,7 @@ async def register(_current_user: AdminUser, data: UserCreate):
         resource_id=user.id,
         details={"email": user.email, "role": user.role},
     )
+    await notify_table_update("users")
     return user
 
 
@@ -202,6 +216,7 @@ async def update_user_by_id(_current_user: AdminUser, user_id: int, data: UserUp
         resource_id=user.id,
         details=data.model_dump(exclude_unset=True, exclude={"password"}),
     )
+    await notify_table_update("users")
     return user
 
 
@@ -220,3 +235,4 @@ async def deactivate_user(_current_user: AdminUser, user_id: int):
         resource_id=user.id,
         details={"email": user.email},
     )
+    await notify_table_update("users")

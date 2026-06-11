@@ -14,6 +14,7 @@ from core_shared.logging import setup_logging
 from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
 from core_shared.settings.router import settings_router
 from core_shared.settings.service import ensure_defaults
+from core_shared.table.preference_router import preference_router
 from core_shared.workers import task_router
 
 TORTOISE_ORM = {
@@ -26,6 +27,7 @@ TORTOISE_ORM = {
                 "core_shared.workers.models",
                 "core_shared.audit.models",
                 "core_shared.settings.models",
+                "core_shared.table.models",
                 "aerich.models",
             ],
             "default_connection": "default",
@@ -77,4 +79,5 @@ app.include_router(oauth_router)
 app.include_router(audit_router)
 app.include_router(task_router)
 app.include_router(settings_router)
+app.include_router(preference_router)
 app.include_router(create_health_router("auth"))

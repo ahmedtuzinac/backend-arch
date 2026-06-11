@@ -1,5 +1,25 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { getAccessToken } from '../api/auth';
+
+type WSListener = (data: Record<string, unknown>) => void;
+
+const listeners = new Map<string, Set<WSListener>>();
+let globalWs: WebSocket | null = null;
+
+export function onWSEvent(type: string, listener: WSListener): () => void {
+  if (!listeners.has(type)) listeners.set(type, new Set());
+  listeners.get(type)!.add(listener);
+  return () => {
+    listeners.get(type)?.delete(listener);
+  };
+}
+
+function dispatch(data: Record<string, unknown>) {
+  const type = data.type as string;
+  if (type && listeners.has(type)) {
+    listeners.get(type)!.forEach((fn) => fn(data));
+  }
+}
 
 export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
@@ -18,9 +38,15 @@ export function useWebSocket() {
         console.log('WebSocket connected');
       };
 
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          dispatch(data);
+        } catch { /* ignore non-json */ }
+      };
+
       ws.onclose = () => {
         console.log('WebSocket disconnected');
-        // Reconnect after 3 seconds
         setTimeout(() => {
           if (wsRef.current === ws) {
             connect();
@@ -29,18 +55,27 @@ export function useWebSocket() {
       };
 
       wsRef.current = ws;
+      globalWs = ws;
     };
 
     connect();
 
     return () => {
       if (wsRef.current) {
-        wsRef.current.onclose = null; // prevent reconnect on cleanup
+        wsRef.current.onclose = null;
         wsRef.current.close();
         wsRef.current = null;
+        globalWs = null;
       }
     };
   }, []);
 
   return wsRef;
+}
+
+export function useWSListener(type: string, callback: WSListener) {
+  const cb = useCallback(callback, []);
+  useEffect(() => {
+    return onWSEvent(type, cb);
+  }, [type, cb]);
 }
