@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { restoreSession } from './api/auth';
+import { useWebSocket } from './hooks/useWebSocket';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+
+function WebSocketProvider({ children }: { children: React.ReactNode }) {
+  useWebSocket();
+  return <>{children}</>;
+}
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -36,7 +42,9 @@ function App() {
           path="/*"
           element={
             authenticated ? (
-              <Dashboard onLogout={() => setAuthenticated(false)} />
+              <WebSocketProvider>
+                <Dashboard onLogout={() => setAuthenticated(false)} />
+              </WebSocketProvider>
             ) : (
               <Navigate to="/login" />
             )

@@ -23,7 +23,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const appSettings = useLoadAppSettings();
-  useWebSocket();
 
   useEffect(() => {
     getMe().then(setUser).catch(() => onLogout());

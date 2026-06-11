@@ -64,6 +64,10 @@ export function useLoadAppSettings() {
     const updated = data.settings as Record<string, string>;
     if (updated) {
       setSettings((prev) => ({ ...prev, ...updated }));
+      // Apply CSS variable immediately
+      if (updated.primary_color) {
+        document.documentElement.style.setProperty('--color-primary', updated.primary_color);
+      }
     }
   });
 
