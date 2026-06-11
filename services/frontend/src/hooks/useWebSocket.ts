@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { getAccessToken } from '../api/auth';
 
 type WSListener = (data: Record<string, unknown>) => void;
@@ -74,8 +74,9 @@ export function useWebSocket() {
 }
 
 export function useWSListener(type: string, callback: WSListener) {
-  const cb = useCallback(callback, []);
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
   useEffect(() => {
-    return onWSEvent(type, cb);
-  }, [type, cb]);
+    return onWSEvent(type, (data) => callbackRef.current(data));
+  }, [type]);
 }

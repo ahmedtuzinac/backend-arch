@@ -52,9 +52,13 @@ services:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
     env_file: services/auth/.env
     ports:
       - "8001:8001"
+    volumes:
+      - ./services/auth/app:/app/app:ro
+      - ./packages/core-shared/core_shared:/usr/local/lib/python3.13/site-packages/core_shared:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,6 +77,9 @@ services:
       dockerfile: services/auth/Dockerfile
     command: arq app.workers.settings.WorkerSettings
     env_file: services/auth/.env
+    volumes:
+      - ./services/auth/app:/app/app:ro
+      - ./packages/core-shared/core_shared:/usr/local/lib/python3.13/site-packages/core_shared:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,9 +91,13 @@ services:
     build:
       context: .
       dockerfile: services/websocket/Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
     env_file: services/websocket/.env
     ports:
       - "8003:8002"
+    volumes:
+      - ./services/websocket/app:/app/app:ro
+      - ./packages/core-shared/core_shared:/usr/local/lib/python3.13/site-packages/core_shared:ro
     depends_on:
       postgres:
         condition: service_healthy
