@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+:root {
+  --color-primary: #111827;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}

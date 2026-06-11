@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAccessToken } from '../../api/auth';
+import { useAppSettings } from '../../hooks/useAppSettings';
 
 interface Setting {
   key: string;
@@ -33,6 +34,7 @@ export default function Settings() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const { reload: reloadAppSettings } = useAppSettings();
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function Settings() {
       });
       if (!res.ok) throw new Error('Failed to save');
       setMessage('Settings saved');
+      reloadAppSettings();
     } catch {
       setError('Failed to save settings');
     } finally {

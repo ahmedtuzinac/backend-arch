@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
 import { getMe, logout } from '../api/auth';
+import { AppSettingsContext, useLoadAppSettings } from '../hooks/useAppSettings';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Users from './admin/Users';
 import AuditLog from './admin/AuditLog';
@@ -21,6 +22,7 @@ interface User {
 export default function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const appSettings = useLoadAppSettings();
   useWebSocket();
 
   useEffect(() => {
@@ -49,11 +51,15 @@ export default function Dashboard({ onLogout }: DashboardProps) {
     }`;
 
   return (
+    <AppSettingsContext.Provider value={appSettings}>
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <aside className="w-56 bg-white border-r border-gray-200 min-h-screen">
         <div className="p-4 border-b border-gray-200">
-          <span className="text-sm font-semibold text-gray-900">Dashboard</span>
+          {appSettings.settings.app_logo_url && (
+            <img src={appSettings.settings.app_logo_url} alt="" className="h-6 mb-1" />
+          )}
+          <span className="text-sm font-semibold" style={{ color: appSettings.settings.primary_color }}>{appSettings.settings.app_name}</span>
         </div>
         <nav className="p-2">
           <NavLink to="/" end className={linkClass}>
@@ -132,5 +138,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         </main>
       </div>
     </div>
+    </AppSettingsContext.Provider>
   );
 }
