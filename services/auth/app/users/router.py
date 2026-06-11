@@ -8,6 +8,7 @@ from app.users.models import User, UserRole
 from app.users.schemas import UserCreate, UserResponse, UserUpdate
 from app.users.service import create_user, get_user_by_email, update_user
 from app.workers.enqueue import enqueue
+from core_shared.audit import log_action
 from core_shared.pagination import PaginatedResponse, paginate
 from core_shared.table import ColumnDef, FilterDef, TableConfig
 
@@ -136,6 +137,14 @@ async def register(_current_user: AdminUser, data: UserCreate):
         user.role = data.role
         await user.save()
     await enqueue("send_welcome_email", user_id=user.id)
+    await log_action(
+        actor_id=_current_user.id,
+        actor_email=_current_user.email,
+        action="created",
+        resource="user",
+        resource_id=user.id,
+        details={"email": user.email, "role": user.role},
+    )
     return user
 
 
@@ -162,6 +171,14 @@ async def update_user_by_id(_current_user: AdminUser, user_id: int, data: UserUp
     if update_data:
         await user.update_from_dict(update_data)
     await user.save()
+    await log_action(
+        actor_id=_current_user.id,
+        actor_email=_current_user.email,
+        action="updated",
+        resource="user",
+        resource_id=user.id,
+        details=data.model_dump(exclude_unset=True, exclude={"password"}),
+    )
     return user
 
 
@@ -172,3 +189,11 @@ async def deactivate_user(_current_user: AdminUser, user_id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     user.is_active = False
     await user.save()
+    await log_action(
+        actor_id=_current_user.id,
+        actor_email=_current_user.email,
+        action="deactivated",
+        resource="user",
+        resource_id=user.id,
+        details={"email": user.email},
+    )

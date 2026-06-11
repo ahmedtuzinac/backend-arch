@@ -8,6 +8,7 @@ from app.config import settings
 from app.oauth.router import router as oauth_router
 from app.tokens.router import router as tokens_router
 from app.users.router import router as users_router
+from core_shared.audit import audit_router
 from core_shared.logging import setup_logging
 from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
 from core_shared.workers import task_router
@@ -16,7 +17,13 @@ TORTOISE_ORM = {
     "connections": {"default": settings.database_url},
     "apps": {
         "models": {
-            "models": ["app.users.models", "app.oauth.models", "core_shared.workers.models", "aerich.models"],
+            "models": [
+                "app.users.models",
+                "app.oauth.models",
+                "core_shared.workers.models",
+                "core_shared.audit.models",
+                "aerich.models",
+            ],
             "default_connection": "default",
         }
     },
@@ -62,6 +69,7 @@ app.add_middleware(RequestIdMiddleware)
 app.include_router(users_router)
 app.include_router(tokens_router)
 app.include_router(oauth_router)
+app.include_router(audit_router)
 app.include_router(task_router)
 
 

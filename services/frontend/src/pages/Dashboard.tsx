@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom'
 import { getMe, logout } from '../api/auth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Users from './admin/Users';
+import AuditLog from './admin/AuditLog';
 import Profile from './Profile';
 
 interface DashboardProps {
@@ -60,9 +61,14 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             Profile
           </NavLink>
           {isAdmin && (
-            <NavLink to="/users" className={linkClass}>
-              Users
-            </NavLink>
+            <>
+              <NavLink to="/users" className={linkClass}>
+                Users
+              </NavLink>
+              <NavLink to="/audit" className={linkClass}>
+                Audit Log
+              </NavLink>
+            </>
           )}
         </nav>
       </aside>
@@ -100,6 +106,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             />
             <Route path="profile" element={<Profile />} />
             {isAdmin && <Route path="users" element={<Users />} />}
+            {isAdmin && <Route path="audit" element={<AuditLog />} />}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
