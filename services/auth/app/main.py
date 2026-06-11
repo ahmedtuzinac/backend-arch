@@ -12,6 +12,8 @@ from core_shared.audit import audit_router
 from core_shared.health import create_health_router
 from core_shared.logging import setup_logging
 from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
+from core_shared.settings.router import settings_router
+from core_shared.settings.service import ensure_defaults
 from core_shared.workers import task_router
 
 TORTOISE_ORM = {
@@ -23,6 +25,7 @@ TORTOISE_ORM = {
                 "app.oauth.models",
                 "core_shared.workers.models",
                 "core_shared.audit.models",
+                "core_shared.settings.models",
                 "aerich.models",
             ],
             "default_connection": "default",
@@ -54,6 +57,7 @@ async def lifespan(app: FastAPI):
     await Tortoise.init(config=TORTOISE_ORM)
     await Tortoise.generate_schemas()
     await ensure_admin_user()
+    await ensure_defaults()
     yield
     await Tortoise.close_connections()
 
@@ -72,4 +76,5 @@ app.include_router(tokens_router)
 app.include_router(oauth_router)
 app.include_router(audit_router)
 app.include_router(task_router)
+app.include_router(settings_router)
 app.include_router(create_health_router("auth"))
