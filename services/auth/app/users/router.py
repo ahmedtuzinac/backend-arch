@@ -20,10 +20,27 @@ users_table_config = TableConfig(
     name="users",
     columns=[
         ColumnDef(
+            key="first_name",
+            label="First Name",
+            type="text",
+            sortable=True,
+        ),
+        ColumnDef(
+            key="last_name",
+            label="Last Name",
+            type="text",
+            sortable=True,
+        ),
+        ColumnDef(
             key="email",
             label="Email",
             type="text",
             sortable=True,
+        ),
+        ColumnDef(
+            key="phone",
+            label="Phone",
+            type="text",
         ),
         ColumnDef(
             key="role",
@@ -72,7 +89,7 @@ users_table_config = TableConfig(
     ],
     searchable=True,
     search_field="email",
-    search_placeholder="Search by email...",
+    search_placeholder="Search by name or email...",
     actions=["edit", "deactivate"],
 )
 
@@ -121,7 +138,13 @@ async def list_users(
     if is_active is not None:
         query = query.filter(is_active=is_active)
     if search:
-        query = query.filter(email__icontains=search)
+        from tortoise.expressions import Q
+
+        query = query.filter(
+            Q(email__icontains=search)
+            | Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+        )
     order_field = sort_by if sort_order == "asc" else f"-{sort_by}"
     query = query.order_by(order_field)
     return await paginate(query, page=page, per_page=per_page)

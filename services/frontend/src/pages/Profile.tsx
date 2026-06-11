@@ -6,12 +6,27 @@ interface User {
   email: string;
   role: string;
   is_active: boolean;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  avatar_url: string;
   created_at: string;
+}
+
+function getInitials(user: User): string {
+  if (user.first_name && user.last_name) {
+    return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
+  }
+  return user.email[0].toUpperCase();
 }
 
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileMsg, setProfileMsg] = useState('');
@@ -21,18 +36,19 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getMe().then((u) => {
+    getMe().then((u: User) => {
       setUser(u);
+      setFirstName(u.first_name);
+      setLastName(u.last_name);
       setEmail(u.email);
+      setPhone(u.phone);
+      setAvatarUrl(u.avatar_url);
     });
   }, []);
 
-  const handleEmailUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setProfileMsg('');
-    setProfileError('');
-    if (!user || email === user.email) return;
-
+  const updateProfile = async (data: Record<string, unknown>, setMsg: (s: string) => void, setErr: (s: string) => void) => {
+    setMsg('');
+    setErr('');
     setLoading(true);
     try {
       const res = await fetch('/auth/users/me', {
@@ -41,27 +57,38 @@ export default function Profile() {
           Authorization: `Bearer ${getAccessToken()}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail || 'Failed to update email');
+        throw new Error(err.detail || 'Failed to update');
       }
       const updated = await res.json();
       setUser(updated);
-      setProfileMsg('Email updated');
+      setMsg('Saved');
     } catch (err) {
-      setProfileError(err instanceof Error ? err.message : 'Failed');
+      setErr(err instanceof Error ? err.message : 'Failed');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const data: Record<string, string> = {};
+    if (user && firstName !== user.first_name) data.first_name = firstName;
+    if (user && lastName !== user.last_name) data.last_name = lastName;
+    if (user && email !== user.email) data.email = email;
+    if (user && phone !== user.phone) data.phone = phone;
+    if (user && avatarUrl !== user.avatar_url) data.avatar_url = avatarUrl;
+    if (Object.keys(data).length === 0) return;
+    await updateProfile(data, setProfileMsg, setProfileError);
   };
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordMsg('');
     setPasswordError('');
-
     if (newPassword !== confirmPassword) {
       setPasswordError('Passwords do not match');
       return;
@@ -70,29 +97,9 @@ export default function Profile() {
       setPasswordError('Password must be at least 6 characters');
       return;
     }
-
-    setLoading(true);
-    try {
-      const res = await fetch('/auth/users/me', {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password: newPassword }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || 'Failed to update password');
-      }
-      setPasswordMsg('Password updated');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : 'Failed');
-    } finally {
-      setLoading(false);
-    }
+    await updateProfile({ password: newPassword }, setPasswordMsg, setPasswordError);
+    setNewPassword('');
+    setConfirmPassword('');
   };
 
   if (!user) {
@@ -103,13 +110,27 @@ export default function Profile() {
     <div className="max-w-2xl">
       <h1 className="text-lg font-semibold text-gray-900 mb-6">Profile</h1>
 
-      {/* Info */}
+      {/* Avatar + Overview */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Account info</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="flex items-center gap-5">
+          {user.avatar_url ? (
+            <img src={user.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover" />
+          ) : (
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-semibold"
+              style={{ backgroundColor: 'var(--color-primary)' }}
+            >
+              {getInitials(user)}
+            </div>
+          )}
           <div>
-            <span className="text-gray-500">Role</span>
-            <p className="text-gray-900 font-medium mt-1">
+            <h2 className="text-base font-semibold text-gray-900">
+              {user.first_name && user.last_name
+                ? `${user.first_name} ${user.last_name}`
+                : user.email}
+            </h2>
+            <p className="text-sm text-gray-500">{user.email}</p>
+            <div className="flex items-center gap-3 mt-1">
               <span
                 className={`px-2 py-0.5 text-xs rounded-full ${
                   user.role === 'admin'
@@ -121,34 +142,80 @@ export default function Profile() {
               >
                 {user.role}
               </span>
-            </p>
-          </div>
-          <div>
-            <span className="text-gray-500">Member since</span>
-            <p className="text-gray-900 mt-1">{new Date(user.created_at).toLocaleDateString()}</p>
+              <span className="text-xs text-gray-400">
+                Member since {new Date(user.created_at).toLocaleDateString()}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Email */}
+      {/* Personal info */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Email</h2>
-        <form onSubmit={handleEmailUpdate} className="space-y-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-          />
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Personal information</h2>
+        <form onSubmit={handleProfileUpdate} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                placeholder="John"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              placeholder="+381 61 123 4567"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
+            <input
+              type="url"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              placeholder="https://example.com/avatar.jpg"
+            />
+          </div>
+
           {profileMsg && <p className="text-sm text-green-600">{profileMsg}</p>}
           {profileError && <p className="text-sm text-red-600">{profileError}</p>}
+
           <button
             type="submit"
-            disabled={loading || email === user.email}
+            disabled={loading}
             className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-50"
           >
-            Update email
+            Save changes
           </button>
         </form>
       </div>
@@ -157,25 +224,27 @@ export default function Profile() {
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Change password</h2>
         <form onSubmit={handlePasswordUpdate} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
           </div>
           {passwordMsg && <p className="text-sm text-green-600">{passwordMsg}</p>}
           {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}

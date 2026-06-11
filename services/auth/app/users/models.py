@@ -17,6 +17,10 @@ class User(BaseModel, TimestampMixin):
     hashed_password = fields.CharField(max_length=255)
     is_active = fields.BooleanField(default=True)
     role = fields.CharEnumField(UserRole, default=UserRole.EMPLOYEE)
+    first_name = fields.CharField(max_length=100, default="")
+    last_name = fields.CharField(max_length=100, default="")
+    phone = fields.CharField(max_length=50, default="")
+    avatar_url = fields.CharField(max_length=512, default="")
 
     class Meta:
         table = "users"
