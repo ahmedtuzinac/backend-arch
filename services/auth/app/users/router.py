@@ -128,7 +128,9 @@ async def update_me(
     data: UserUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    return await update_user(current_user.id, data)
+    user = await update_user(current_user.id, data)
+    await notify_table_update("users")
+    return user
 
 
 # --- Admin endpoints ---
