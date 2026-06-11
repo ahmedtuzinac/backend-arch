@@ -58,21 +58,23 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           <NavLink to="/" end className={linkClass}>
             Home
           </NavLink>
+          {isAdmin && (
+            <>
+              <NavLink to="/health" className={linkClass}>
+                Health
+              </NavLink>
+              <NavLink to="/users" className={linkClass}>
+                Users
+              </NavLink>
+            </>
+          )}
           <NavLink to="/profile" className={linkClass}>
             Profile
           </NavLink>
           {isAdmin && (
-            <>
-              <NavLink to="/users" className={linkClass}>
-                Users
-              </NavLink>
-              <NavLink to="/audit" className={linkClass}>
-                Audit Log
-              </NavLink>
-              <NavLink to="/health" className={linkClass}>
-                Health
-              </NavLink>
-            </>
+            <NavLink to="/audit" className={linkClass}>
+              Audit Log
+            </NavLink>
           )}
         </nav>
       </aside>
