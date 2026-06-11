@@ -1,0 +1,41 @@
+- generic [ref=e17]:
+  - banner [ref=e18]:
+    - generic [ref=e20]: Dashboard
+    - generic [ref=e22]:
+      - link "admin@admin.localadmin" [ref=e23] [cursor=pointer]:
+        - /url: /profile
+      - button "Sign out" [ref=e24]
+  - generic [ref=e25]:
+    - complementary [ref=e26]:
+      - navigation [ref=e27]:
+        - link "Home" [ref=e28] [cursor=pointer]:
+          - /url: /
+          - img [ref=e29]
+          - text: Home
+        - link "Health" [ref=e31] [cursor=pointer]:
+          - /url: /health
+          - img [ref=e32]
+          - text: Health
+        - link "Users" [ref=e34] [cursor=pointer]:
+          - /url: /users
+          - img [ref=e35]
+          - text: Users
+        - link "Profile" [ref=e37] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e38]
+          - text: Profile
+        - link "Audit Log" [ref=e40] [cursor=pointer]:
+          - /url: /audit
+          - img [ref=e41]
+          - text: Audit Log
+        - link "Settings" [ref=e43] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e44]
+          - text: Settings
+    - main [ref=e48]:
+      - generic [ref=e49]:
+        - heading "Welcome, admin@admin.local" [level=1] [ref=e50]
+        - paragraph [ref=e51]:
+          - text: You are signed in as
+          - strong [ref=e52]: admin
+          - text: .
