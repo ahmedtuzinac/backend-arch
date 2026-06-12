@@ -1,6 +1,6 @@
 # Backend Architecture Template
 
-Production-ready microservice backend template with FastAPI, PostgreSQL, Redis, Podman, and a React admin dashboard. Real-time updates via WebSocket.
+Production-ready microservice backend template with FastAPI, PostgreSQL, Redis, S3, Podman, and a React admin dashboard. Real-time updates via WebSocket.
 
 ## Stack
 
@@ -8,6 +8,7 @@ Production-ready microservice backend template with FastAPI, PostgreSQL, Redis, 
 - **Python 3.13** + **FastAPI**
 - **Tortoise ORM** + **Aerich** (migrations)
 - **PostgreSQL 17** + **Redis 7**
+- **S3-compatible storage** (MinIO for dev, AWS S3 for production)
 - **Podman** + **podman-compose**
 - **Nginx** (reverse proxy)
 - **OAuth2 + JWT** authentication
@@ -62,6 +63,7 @@ backend-arch/
 ├── services/
 │   ├── auth/                      # Auth service (OAuth2, JWT, RBAC)
 │   ├── websocket/                 # WebSocket service (rooms, online, broadcast)
+│   ├── files/                     # File upload service (S3, thumbnails)
 │   └── frontend/                  # React admin dashboard
 ├── service-template/              # Copier template for new services
 ├── infra/                         # Nginx, PostgreSQL, Redis configs
@@ -82,7 +84,7 @@ backend-arch/
 - User CRUD (admin only) with first/last name, phone, avatar
 - Background workers (welcome email, token cleanup cron)
 - Audit logging on all mutations
-- Dynamic table config for frontend
+- Dynamic table config for frontend with avatar column
 - App settings (name, logo, timezone, date format, primary color)
 - Health check with DB status and uptime
 
@@ -95,22 +97,34 @@ backend-arch/
 - Stable reconnection (handles page reload without losing online status)
 - Health check with DB status and uptime
 
+### Files Service
+- File upload to S3-compatible storage (MinIO / AWS S3)
+- Auto thumbnail generation for images (worker)
+- HEIC/HEIF support (pillow-heif)
+- On-demand HEIC-to-JPEG preview conversion
+- File listing with search, pagination
+- File details, download, delete
+- Storage health check (bucket status)
+- Real-time updates via WebSocket (upload, delete, thumbnail ready)
+
 ### Frontend
 - Login page with session persistence (refresh token)
 - Admin dashboard with sidebar navigation and SVG icons
 - **Home** -- welcome page
-- **Health** -- live service status, uptime ticker, DB checks
-- **Users** -- DynamicTable with filters, sorting, online status, column picker with reorder, CRUD
+- **Health** -- live service status with uptime ticker for Auth, WebSocket, Files, Storage
+- **Users** -- DynamicTable with filters, sorting, avatar with online indicator, column picker with reorder, CRUD
 - **Profile** -- avatar (initials or URL), first/last name, email, phone, password
-- **Audit Log** -- who did what, filterable by action
-- **Settings** -- app name, logo URL, timezone, date format, primary color (with live preview)
+- **Files** -- drag & drop upload, multi-file, progress bar, thumbnail grid/table, preview modal, file details side panel, copy link, search
+- **Audit Log** -- who did what with avatars, filterable by action
+- **Settings** -- app name, logo URL, timezone, date format, primary color (live preview)
 - Real-time updates via WebSocket:
-  - Table auto-refresh when data changes
+  - Table auto-refresh when data changes (users + files)
   - Settings (color, name, date format) update live across all tabs
-  - Online presence tracking
-- Backend-driven DynamicTable (columns, filters, sorting, badge colors from API)
+  - Online presence on avatars
+  - Thumbnail appears live after worker generates it
+- Backend-driven DynamicTable (columns, filters, sorting, badge colors, avatar type from API)
 - Per-user column preferences (hide/show, reorder, persisted on backend)
-- Primary color theming from settings (buttons, links, sidebar)
+- Primary color theming from settings (buttons, links, sidebar, avatars)
 
 ## Shared Package (core-shared)
 
@@ -134,10 +148,11 @@ Installable Python package used by all services:
 
 All real-time features use a single WebSocket connection per user:
 
-- **Table updates** -- when admin creates/updates/deactivates a user, all clients viewing the table see changes instantly
-- **Settings sync** -- when admin changes app color/name/date format, all connected users see the change immediately
-- **Online presence** -- green dot next to users who have an active connection
-- **Broadcast API** -- any service can push events to all users via `POST /messages/broadcast`
+- **Table updates** -- when data changes in any service, all clients see it instantly
+- **Settings sync** -- color, name, date format update live across all tabs
+- **Online presence** -- green dot on avatar for connected users
+- **File thumbnails** -- appear live after worker generates them
+- **Broadcast API** -- any service can push events via `POST /messages/broadcast`
 
 ## Creating a New Service
 
