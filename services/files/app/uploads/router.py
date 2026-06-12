@@ -1,3 +1,4 @@
+import contextlib
 import uuid
 
 from app.config import settings
@@ -7,9 +8,20 @@ from app.uploads.schemas import FileResponse
 from app.workers.enqueue import enqueue
 from fastapi import APIRouter, HTTPException, UploadFile, status
 
+from core_shared.communication import ServiceClient
 from core_shared.pagination import PaginatedResponse, paginate
 
 router = APIRouter(prefix="/files", tags=["files"])
+
+ws_client = ServiceClient(base_url="http://websocket:8002")
+
+
+async def notify_files_update() -> None:
+    with contextlib.suppress(Exception):
+        await ws_client.post("/messages/broadcast", json={
+            "type": "table_updated",
+            "table": "files",
+        })
 
 
 def get_file_url(key: str) -> str:
@@ -66,6 +78,7 @@ async def upload_file(
     if file.content_type and file.content_type.startswith("image/"):
         await enqueue("generate_thumbnail", file_id=record.id)
 
+    await notify_files_update()
     response = FileResponse.model_validate(record)
     response.url = get_file_url(record.s3_key)
     return response
@@ -111,3 +124,4 @@ async def delete_file(file_id: int):
     if record.thumbnail_key:
         client.delete_object(Bucket=settings.s3_bucket, Key=record.thumbnail_key)
     await record.delete()
+    await notify_files_update()

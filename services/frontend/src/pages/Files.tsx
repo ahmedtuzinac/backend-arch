@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAccessToken } from '../api/auth';
 import { useAppSettings } from '../hooks/useAppSettings';
+import { useWSListener } from '../hooks/useWebSocket';
 
 interface FileItem {
   id: number;
@@ -83,6 +84,13 @@ export default function Files() {
   useEffect(() => {
     loadFiles();
   }, []);
+
+  // Real-time: reload when files change (upload, delete, thumbnail ready)
+  useWSListener('table_updated', (data) => {
+    if (data.table === 'files') {
+      loadFiles(page);
+    }
+  });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

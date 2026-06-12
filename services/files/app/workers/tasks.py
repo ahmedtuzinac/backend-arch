@@ -52,5 +52,17 @@ async def generate_thumbnail(ctx: dict, *, file_id: int, job_id: str | None = No
     record.thumbnail_key = thumbnail_key
     await record.save()
 
+    # Notify frontend that files table updated (thumbnail ready)
+    import contextlib
+
+    from core_shared.communication import ServiceClient
+
+    ws_client = ServiceClient(base_url="http://websocket:8002")
+    with contextlib.suppress(Exception):
+        await ws_client.post("/messages/broadcast", json={
+            "type": "table_updated",
+            "table": "files",
+        })
+
     await logger.ainfo("thumbnail_generated", file_id=file_id, thumbnail_key=thumbnail_key)
     return {"status": "done", "thumbnail_key": thumbnail_key}
