@@ -157,7 +157,7 @@ export default function Files() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="text-left px-4 py-3 font-medium text-gray-600 w-20"></th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 w-28"></th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Size</th>
@@ -168,11 +168,11 @@ export default function Files() {
           <tbody>
             {filtered.map((file) => (
               <tr key={file.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                <td className="px-4 py-2">
+                <td className="px-4 py-3">
                   {isImage(file.content_type) && file.thumbnail_url ? (
-                    <img src={file.thumbnail_url} alt="" className="w-14 h-14 rounded-md object-cover" />
+                    <img src={file.thumbnail_url} alt="" className="w-20 h-20 rounded-lg object-cover" />
                   ) : (
-                    <div className="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-2xl">
+                    <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center text-3xl">
                       {getFileIcon(file.content_type)}
                     </div>
                   )}
