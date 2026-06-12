@@ -22,8 +22,8 @@ interface ServiceConfig {
 const SERVICES: ServiceConfig[] = [
   { name: 'Auth', url: '/auth/health' },
   { name: 'WebSocket', url: '/ws/health' },
-  { name: 'Files', url: '/files/health' },
-  { name: 'Storage (MinIO)', url: '/files/storage/health' },
+  { name: 'Files', url: '/api/files/health' },
+  { name: 'Storage (MinIO)', url: '/api/files/storage/health' },
 ];
 
 const STATUS_STYLES: Record<string, string> = {

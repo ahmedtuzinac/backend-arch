@@ -42,7 +42,7 @@ export default function Files() {
 
   const loadFiles = async (p = 1) => {
     try {
-      const res = await fetch(`/files/files/?page=${p}&per_page=20`, {
+      const res = await fetch(`/api/files/files/?page=${p}&per_page=20`, {
         headers: { Authorization: `Bearer ${getAccessToken()}` },
       });
       if (!res.ok) throw new Error();
@@ -70,7 +70,7 @@ export default function Files() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/files/files/upload', {
+      const res = await fetch('/api/files/files/upload', {
         method: 'POST',
         headers: { Authorization: `Bearer ${getAccessToken()}` },
         body: formData,
@@ -90,7 +90,7 @@ export default function Files() {
 
   const handleDelete = async (id: number) => {
     try {
-      await fetch(`/files/files/${id}`, {
+      await fetch(`/api/files/files/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${getAccessToken()}` },
       });

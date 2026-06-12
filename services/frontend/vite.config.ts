@@ -16,9 +16,9 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/ws/, ''),
         ws: true,
       },
-      '/files': {
+      '/api/files': {
         target: 'http://localhost:8005',
-        rewrite: (path) => path.replace(/^\/files/, ''),
+        rewrite: (path) => path.replace(/^\/api\/files/, ''),
       },
     },
   },
