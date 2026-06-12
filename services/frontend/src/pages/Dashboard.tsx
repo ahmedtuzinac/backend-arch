@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
 import { getMe, logout } from '../api/auth';
 import { AppSettingsContext, useLoadAppSettings } from '../hooks/useAppSettings';
+import { I18nCtx, useLoadI18n } from '../hooks/useI18n';
 import Users from './admin/Users';
 import AuditLog from './admin/AuditLog';
 import Health from './admin/Health';
@@ -24,6 +25,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const appSettings = useLoadAppSettings();
+  const i18n = useLoadI18n();
 
   useEffect(() => {
     getMe().then(setUser).catch(() => onLogout());
@@ -52,6 +54,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
   return (
     <AppSettingsContext.Provider value={appSettings}>
+    <I18nCtx.Provider value={i18n}>
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top bar */}
       <header className="bg-white border-b border-gray-200 flex items-center h-14 shrink-0">
@@ -69,8 +72,19 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                 {user.role}
               </span>
             </NavLink>
+            {i18n.languages.length > 1 && (
+              <select
+                value={i18n.lang}
+                onChange={(e) => i18n.setLang(e.target.value)}
+                className="text-xs border border-gray-200 rounded px-2 py-1 text-gray-600"
+              >
+                {i18n.languages.map((l) => (
+                  <option key={l.code} value={l.code}>{l.code.toUpperCase()}</option>
+                ))}
+              </select>
+            )}
             <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-900">
-              Sign out
+              {i18n.t('app.signout')}
             </button>
           </div>
         </div>
@@ -82,37 +96,37 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         <nav className="p-3 space-y-1">
           <NavLink to="/" end className={linkClass}>
             <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" /></svg>
-            Home
+            {i18n.t('app.home')}
           </NavLink>
           {isAdmin && (
             <>
               <NavLink to="/health" className={linkClass}>
                 <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                Health
+                {i18n.t('app.health')}
               </NavLink>
               <NavLink to="/users" className={linkClass}>
                 <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" /></svg>
-                Users
+                {i18n.t('app.users')}
               </NavLink>
             </>
           )}
           <NavLink to="/profile" className={linkClass}>
             <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-4 7a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-            Profile
+            {i18n.t('app.profile')}
           </NavLink>
           <NavLink to="/files" className={linkClass}>
             <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-            Files
+            {i18n.t('app.files')}
           </NavLink>
           {isAdmin && (
             <>
               <NavLink to="/audit" className={linkClass}>
                 <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m-.01 4h.01" /></svg>
-                Audit Log
+                {i18n.t('app.audit')}
               </NavLink>
               <NavLink to="/settings" className={linkClass}>
                 <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066z" /><circle cx="12" cy="12" r="3" /></svg>
-                Settings
+                {i18n.t('app.settings')}
               </NavLink>
             </>
           )}
@@ -147,6 +161,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       </div>
     </div>
     <Toast />
+    </I18nCtx.Provider>
     </AppSettingsContext.Provider>
   );
 }

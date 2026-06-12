@@ -10,6 +10,8 @@ from app.tokens.router import router as tokens_router
 from app.users.router import router as users_router
 from core_shared.audit import audit_router
 from core_shared.health import create_health_router
+from core_shared.i18n import i18n_router
+from core_shared.i18n.seed import ensure_default_languages
 from core_shared.logging import setup_logging
 from core_shared.middleware import RequestIdMiddleware, setup_cors, setup_error_handler
 from core_shared.settings.router import settings_router
@@ -27,6 +29,7 @@ TORTOISE_ORM = {
                 "core_shared.workers.models",
                 "core_shared.audit.models",
                 "core_shared.settings.models",
+                "core_shared.i18n.models",
                 "core_shared.table.models",
                 "aerich.models",
             ],
@@ -60,6 +63,7 @@ async def lifespan(app: FastAPI):
     await Tortoise.generate_schemas()
     await ensure_admin_user()
     await ensure_defaults()
+    await ensure_default_languages()
     yield
     await Tortoise.close_connections()
 
@@ -79,5 +83,6 @@ app.include_router(oauth_router)
 app.include_router(audit_router)
 app.include_router(task_router)
 app.include_router(settings_router)
+app.include_router(i18n_router)
 app.include_router(preference_router)
 app.include_router(create_health_router("auth"))
