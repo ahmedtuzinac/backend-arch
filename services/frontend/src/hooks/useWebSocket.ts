@@ -4,7 +4,6 @@ import { getAccessToken } from '../api/auth';
 type WSListener = (data: Record<string, unknown>) => void;
 
 const listeners = new Map<string, Set<WSListener>>();
-let globalWs: WebSocket | null = null;
 
 export function onWSEvent(type: string, listener: WSListener): () => void {
   if (!listeners.has(type)) listeners.set(type, new Set());
@@ -55,7 +54,6 @@ export function useWebSocket() {
       };
 
       wsRef.current = ws;
-      globalWs = ws;
     };
 
     connect();
@@ -65,7 +63,6 @@ export function useWebSocket() {
         wsRef.current.onclose = null;
         wsRef.current.close();
         wsRef.current = null;
-        globalWs = null;
       }
     };
   }, []);

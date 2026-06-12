@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
 import { getMe, logout } from '../api/auth';
 import { AppSettingsContext, useLoadAppSettings } from '../hooks/useAppSettings';
-import { useWebSocket } from '../hooks/useWebSocket';
 import Users from './admin/Users';
 import AuditLog from './admin/AuditLog';
 import Health from './admin/Health';
 import Settings from './admin/Settings';
 import Profile from './Profile';
+import Files from './Files';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -99,6 +99,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-4 7a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             Profile
           </NavLink>
+          <NavLink to="/files" className={linkClass}>
+            <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+            Files
+          </NavLink>
           {isAdmin && (
             <>
               <NavLink to="/audit" className={linkClass}>
@@ -130,6 +134,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               }
             />
             <Route path="profile" element={<Profile />} />
+            <Route path="files" element={<Files />} />
             {isAdmin && <Route path="users" element={<Users />} />}
             {isAdmin && <Route path="audit" element={<AuditLog />} />}
             {isAdmin && <Route path="health" element={<Health />} />}
