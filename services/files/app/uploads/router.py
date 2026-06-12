@@ -92,12 +92,15 @@ async def list_files(
     per_page: int = 20,
     category: str | None = None,
     uploaded_by: int | None = None,
+    search: str | None = None,
 ):
     query = FileUpload.all().order_by("-created_at")
     if category:
         query = query.filter(category=category)
     if uploaded_by is not None:
         query = query.filter(uploaded_by=uploaded_by)
+    if search:
+        query = query.filter(original_filename__icontains=search)
     result = await paginate(query, page=page, per_page=per_page)
     for item in result["items"]:
         item.url = get_file_url(item.s3_key)

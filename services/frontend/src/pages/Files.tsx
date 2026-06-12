@@ -73,9 +73,11 @@ export default function Files() {
   const { settings: appSettings } = useAppSettings();
   const dropRef = useRef<HTMLDivElement>(null);
 
-  const loadFiles = async (p = 1) => {
+  const loadFiles = async (p = 1, q = search) => {
     try {
-      const res = await fetch(`/api/files/files/?page=${p}&per_page=20`, {
+      const params = new URLSearchParams({ page: String(p), per_page: '20' });
+      if (q) params.set('search', q);
+      const res = await fetch(`/api/files/files/?${params}`, {
         headers: { Authorization: `Bearer ${getAccessToken()}` },
       });
       if (!res.ok) throw new Error();
@@ -189,7 +191,10 @@ export default function Files() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const filtered = search ? files.filter((f) => f.original_filename.toLowerCase().includes(search.toLowerCase())) : files;
+  // Search triggers backend reload
+  useEffect(() => {
+    loadFiles(1, search);
+  }, [search]);
 
   return (
     <div ref={dropRef} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className="relative">
@@ -248,7 +253,7 @@ export default function Files() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((file) => (
+            {files.map((file) => (
               <tr key={file.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                 <td className="px-4 py-3">
                   {isImage(file.content_type) && file.thumbnail_url ? (
