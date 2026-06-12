@@ -33,6 +33,11 @@ users_table_config = TableConfig(
     name="users",
     columns=[
         ColumnDef(
+            key="avatar_url",
+            label="",
+            type="avatar",
+        ),
+        ColumnDef(
             key="first_name",
             label="First Name",
             type="text",

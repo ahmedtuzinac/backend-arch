@@ -214,7 +214,32 @@ export default function DynamicTable({
     }
   };
 
-  const renderCell = (col: ColumnDef, value: unknown) => {
+  const renderCell = (col: ColumnDef, value: unknown, item: Record<string, unknown>) => {
+    if (col.type === 'avatar') {
+      const url = String(value || '');
+      const firstName = String(item.first_name || '');
+      const lastName = String(item.last_name || '');
+      const email = String(item.email || '');
+      const initials = firstName && lastName
+        ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+        : email ? email[0].toUpperCase() : '?';
+
+      if (url) {
+        return (
+          <div className="w-9 h-9 rounded-full p-0.5" style={{ backgroundColor: appSettings.primary_color + '30' }}>
+            <img src={url} alt="" className="w-full h-full rounded-full object-cover" />
+          </div>
+        );
+      }
+      return (
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+          style={{ backgroundColor: appSettings.primary_color }}
+        >
+          {initials}
+        </div>
+      );
+    }
     if (col.type === 'badge') {
       const colorClass = col.badge_colors?.[String(value)] || 'bg-gray-100 text-gray-600';
       return <span className={`px-2 py-0.5 text-xs rounded-full ${colorClass}`}>{String(value)}</span>;
@@ -393,7 +418,7 @@ export default function DynamicTable({
                   )}
                   {visibleColumns.map((col) => (
                     <td key={col.key} className="px-4 py-3 text-gray-900">
-                      {renderCell(col, item[col.key])}
+                      {renderCell(col, item[col.key], item)}
                     </td>
                   ))}
                   {config.actions.length > 0 && (
