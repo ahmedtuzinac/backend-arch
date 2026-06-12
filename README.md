@@ -1,6 +1,6 @@
 # Backend Architecture Template
 
-Production-ready microservice backend template with FastAPI, PostgreSQL, Redis, Podman, and a React admin dashboard.
+Production-ready microservice backend template with FastAPI, PostgreSQL, Redis, Podman, and a React admin dashboard. Real-time updates via WebSocket.
 
 ## Stack
 
@@ -20,6 +20,8 @@ Production-ready microservice backend template with FastAPI, PostgreSQL, Redis, 
 **Frontend:**
 - **React 19** + **TypeScript** + **Vite**
 - **Tailwind CSS v4**
+- **react-router-dom**
+- **WebSocket** real-time updates
 
 ## Quick Start
 
@@ -38,6 +40,8 @@ Default admin: `admin@admin.local` / `admin` (configurable via .env)
 
 Frontend: http://localhost:3000
 
+**Development mode:** Backend uses volume mounts with `--reload` for instant code changes. Frontend uses `npm run dev` for hot reload.
+
 ## Project Structure
 
 ```
@@ -48,15 +52,16 @@ backend-arch/
 │       ├── database/              # BaseModel, mixins
 │       ├── workers/               # TaskLog, arq, tracked_task decorator
 │       ├── audit/                 # AuditLog model, router
-│       ├── health/                # Health check router with DB checks
+│       ├── health/                # Health check with DB status + uptime
 │       ├── pagination/            # Generic pagination
-│       ├── table/                 # Dynamic table config (backend-driven)
+│       ├── table/                 # Dynamic table config + user column preferences
+│       ├── settings/              # App settings (key-value, per-app config)
 │       ├── logging/               # Structlog setup
-│       ├── communication/         # httpx async client
+│       ├── communication/         # httpx async client with retry
 │       └── middleware/            # CORS, error handler, request ID
 ├── services/
 │   ├── auth/                      # Auth service (OAuth2, JWT, RBAC)
-│   ├── websocket/                 # WebSocket service (rooms, online status)
+│   ├── websocket/                 # WebSocket service (rooms, online, broadcast)
 │   └── frontend/                  # React admin dashboard
 ├── service-template/              # Copier template for new services
 ├── infra/                         # Nginx, PostgreSQL, Redis configs
@@ -69,32 +74,43 @@ backend-arch/
 ## Services
 
 ### Auth Service
-- Login (email/password) -- no public registration
+- Login (email/password) -- no public registration, admin creates users
 - OAuth2 (authorization_code, client_credentials, refresh_token)
 - JWT access + refresh tokens
 - RBAC (system, admin, employee)
 - Auto admin user on startup
-- User CRUD (admin only)
+- User CRUD (admin only) with first/last name, phone, avatar
 - Background workers (welcome email, token cleanup cron)
-- Audit logging
-- Dynamic table config
+- Audit logging on all mutations
+- Dynamic table config for frontend
+- App settings (name, logo, timezone, date format, primary color)
+- Health check with DB status and uptime
 
 ### WebSocket Service
 - WebSocket connections with JWT auth
 - Rooms (join, leave, broadcast)
 - Direct messaging
 - Online status tracking (`GET /messages/online`)
-- REST API for sending messages from other services
+- Broadcast endpoint (`POST /messages/broadcast`) for real-time events
+- Stable reconnection (handles page reload without losing online status)
+- Health check with DB status and uptime
 
 ### Frontend
-- Login page
-- Admin dashboard with sidebar navigation
-- User management (DynamicTable, filters, sorting, online status)
-- Profile page (email, password update)
-- Audit log viewer
-- Health dashboard (live uptime, service status, DB checks)
-- Session persistence (refresh token)
-- WebSocket auto-connect for online presence
+- Login page with session persistence (refresh token)
+- Admin dashboard with sidebar navigation and SVG icons
+- **Home** -- welcome page
+- **Health** -- live service status, uptime ticker, DB checks
+- **Users** -- DynamicTable with filters, sorting, online status, column picker with reorder, CRUD
+- **Profile** -- avatar (initials or URL), first/last name, email, phone, password
+- **Audit Log** -- who did what, filterable by action
+- **Settings** -- app name, logo URL, timezone, date format, primary color (with live preview)
+- Real-time updates via WebSocket:
+  - Table auto-refresh when data changes
+  - Settings (color, name, date format) update live across all tabs
+  - Online presence tracking
+- Backend-driven DynamicTable (columns, filters, sorting, badge colors from API)
+- Per-user column preferences (hide/show, reorder, persisted on backend)
+- Primary color theming from settings (buttons, links, sidebar)
 
 ## Shared Package (core-shared)
 
@@ -106,12 +122,22 @@ Installable Python package used by all services:
 | `database` | BaseModel, TimestampMixin, SoftDeleteMixin, connection helpers |
 | `workers` | TaskLog, `tracked_task` decorator, arq cron support |
 | `audit` | AuditLog model, `log_action()`, audit router |
-| `health` | `create_health_router()` with DB/Redis checks and uptime |
+| `health` | `create_health_router()` with DB checks and live uptime |
 | `pagination` | `paginate()` + `PaginatedResponse[T]` |
-| `table` | `TableConfig`, `ColumnDef`, `FilterDef` for backend-driven tables |
+| `table` | `TableConfig`, `ColumnDef`, `FilterDef`, user column preferences |
+| `settings` | `AppSetting` model, `get/set_setting()`, settings router with WS broadcast |
 | `logging` | Structlog JSON setup |
 | `communication` | `ServiceClient` httpx async wrapper with retry |
 | `middleware` | CORS, error handler, X-Request-ID |
+
+## Real-Time (WebSocket)
+
+All real-time features use a single WebSocket connection per user:
+
+- **Table updates** -- when admin creates/updates/deactivates a user, all clients viewing the table see changes instantly
+- **Settings sync** -- when admin changes app color/name/date format, all connected users see the change immediately
+- **Online presence** -- green dot next to users who have an active connection
+- **Broadcast API** -- any service can push events to all users via `POST /messages/broadcast`
 
 ## Creating a New Service
 

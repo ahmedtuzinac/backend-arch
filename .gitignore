@@ -35,3 +35,6 @@ aerich.ini
 
 # Podman/Docker
 *.log
+
+# Playwright MCP screenshots
+.playwright-mcp/
