@@ -15,7 +15,7 @@ router = APIRouter(prefix="/files", tags=["files"])
 def get_file_url(key: str) -> str:
     if not key:
         return ""
-    return f"{settings.s3_endpoint_url}/{settings.s3_bucket}/{key}"
+    return f"{settings.s3_public_url}/{settings.s3_bucket}/{key}"
 
 
 def validate_extension(filename: str) -> bool:
