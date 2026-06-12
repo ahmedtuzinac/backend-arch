@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMe, getAccessToken } from '../api/auth';
+import { useI18n } from '../hooks/useI18n';
 
 interface User {
   id: number;
@@ -10,6 +11,7 @@ interface User {
   last_name: string;
   phone: string;
   avatar_url: string;
+  language: string;
   created_at: string;
 }
 
@@ -27,6 +29,8 @@ export default function Profile() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [language, setLanguage] = useState('en');
+  const i18n = useI18n();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileMsg, setProfileMsg] = useState('');
@@ -43,6 +47,7 @@ export default function Profile() {
       setEmail(u.email);
       setPhone(u.phone);
       setAvatarUrl(u.avatar_url);
+      setLanguage(u.language || 'en');
     });
   }, []);
 
@@ -81,8 +86,10 @@ export default function Profile() {
     if (user && email !== user.email) data.email = email;
     if (user && phone !== user.phone) data.phone = phone;
     if (user && avatarUrl !== user.avatar_url) data.avatar_url = avatarUrl;
+    if (user && language !== user.language) data.language = language;
     if (Object.keys(data).length === 0) return;
     await updateProfile(data, setProfileMsg, setProfileError);
+    if (data.language) i18n.setLang(data.language);
   };
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
@@ -196,15 +203,29 @@ export default function Profile() {
               placeholder="+381 61 123 4567"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
-            <input
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              placeholder="https://example.com/avatar.jpg"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
+              <input
+                type="url"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                placeholder="https://example.com/avatar.jpg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              >
+                {i18n.languages.map((lang) => (
+                  <option key={lang.code} value={lang.code}>{lang.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {profileMsg && <p className="text-sm text-green-600">{profileMsg}</p>}

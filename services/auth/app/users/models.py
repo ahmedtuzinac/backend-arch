@@ -21,6 +21,7 @@ class User(BaseModel, TimestampMixin):
     last_name = fields.CharField(max_length=100, default="")
     phone = fields.CharField(max_length=50, default="")
     avatar_url = fields.CharField(max_length=512, default="")
+    language = fields.CharField(max_length=10, default="en")
 
     class Meta:
         table = "users"

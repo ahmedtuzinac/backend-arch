@@ -59,7 +59,25 @@ export function useLoadI18n() {
 
   useEffect(() => {
     loadLanguages();
-    loadTranslations(lang);
+    // Load user's saved language preference
+    const init = async () => {
+      try {
+        const res = await fetch('/auth/users/me', {
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+        });
+        if (res.ok) {
+          const user = await res.json();
+          if (user.language && user.language !== lang) {
+            setLangState(user.language);
+            localStorage.setItem('lang', user.language);
+            loadTranslations(user.language);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+      loadTranslations(lang);
+    };
+    init();
   }, []);
 
   // Real-time: reload when translations change

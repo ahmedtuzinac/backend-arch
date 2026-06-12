@@ -20,6 +20,7 @@ class UserUpdate(BaseModel):
     last_name: str | None = None
     phone: str | None = None
     avatar_url: str | None = None
+    language: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -31,6 +32,7 @@ class UserResponse(BaseModel):
     last_name: str
     phone: str
     avatar_url: str
+    language: str
     created_at: datetime
     updated_at: datetime
 
