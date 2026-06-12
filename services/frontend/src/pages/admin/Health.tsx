@@ -90,7 +90,7 @@ export default function Health() {
 
   const getLiveUptime = (name: string): string => {
     const health = services[name];
-    if (!health) return '-';
+    if (!health || health.uptime_seconds === undefined) return '-';
     const fetched = fetchedAt[name] || 0;
     const now = Math.floor(Date.now() / 1000);
     const elapsed = now - fetched;

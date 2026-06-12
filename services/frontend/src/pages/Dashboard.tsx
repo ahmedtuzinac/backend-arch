@@ -141,9 +141,9 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               index
               element={
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900 mb-4">Welcome, {user.email}</h1>
+                  <h1 className="text-lg font-semibold text-gray-900 mb-4">{i18n.t('app.welcome')}, {user.email}</h1>
                   <p className="text-sm text-gray-600">
-                    You are signed in as <strong>{user.role}</strong>.
+                    {i18n.t('app.signed_in_as')} <strong>{user.role}</strong>.
                   </p>
                 </div>
               }
