@@ -293,15 +293,15 @@ export default function Files() {
                 <td className="px-4 py-3 text-gray-500">{formatDate(file.created_at, appSettings.date_format)}</td>
                 <td className="px-4 py-3 text-right">
                   <button onClick={() => copyLink(file)} className="text-gray-500 hover:text-gray-900 mr-3" title="Copy link">
-                    {copied === file.id ? 'Copied!' : 'Copy link'}
+                    {copied === file.id ? t('files.copied') : t('files.copylink')}
                   </button>
                   {file.url && (
                     <a href={file.url} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-gray-900 mr-3">
-                      Download
+                      {t('files.download')}
                     </a>
                   )}
                   <button onClick={() => handleDelete(file.id)} className="text-red-500 hover:text-red-700">
-                    Delete
+                    {t('files.delete')}
                   </button>
                 </td>
               </tr>
@@ -315,7 +315,7 @@ export default function Files() {
           <svg className="w-10 h-10 text-gray-300 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          No files yet. Upload or drag & drop files here.
+          {t('files.empty')}
         </div>
       )}
 
@@ -419,14 +419,14 @@ export default function Files() {
                   rel="noreferrer"
                   className="flex-1 text-center px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
                 >
-                  Download
+                  {t('files.download')}
                 </a>
               )}
               <button
                 onClick={() => { handleDelete(detailFile.id); setDetailFile(null); }}
                 className="flex-1 text-center px-3 py-2 text-sm text-red-600 border border-red-200 rounded-md hover:bg-red-50"
               >
-                Delete
+                {t('files.delete')}
               </button>
             </div>
           </div>

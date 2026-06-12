@@ -141,7 +141,7 @@ export default function Settings() {
         {settings.map((setting) => (
           <div key={setting.key}>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {setting.description || setting.key}
+              {t(`settings.${setting.key}`) !== `settings.${setting.key}` ? t(`settings.${setting.key}`) : setting.description || setting.key}
             </label>
             {renderField(setting)}
           </div>
