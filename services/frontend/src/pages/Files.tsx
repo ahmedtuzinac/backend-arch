@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAccessToken } from '../api/auth';
+import { useAppSettings } from '../hooks/useAppSettings';
 
 interface FileItem {
   id: number;
@@ -32,6 +33,27 @@ function isImage(contentType: string): boolean {
   return contentType.startsWith('image/');
 }
 
+function getFileIcon(contentType: string): string {
+  if (contentType.startsWith('image/')) return '🖼';
+  if (contentType === 'application/pdf') return '📄';
+  if (contentType.includes('spreadsheet') || contentType.includes('excel')) return '📊';
+  if (contentType.includes('document') || contentType.includes('word')) return '📝';
+  if (contentType.includes('zip') || contentType.includes('archive')) return '📦';
+  return '📎';
+}
+
+function formatDate(date: string, format: string): string {
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  switch (format) {
+    case 'MM/DD/YYYY': return `${month}/${day}/${year}`;
+    case 'YYYY-MM-DD': return `${year}-${month}-${day}`;
+    default: return `${day}/${month}/${year}`;
+  }
+}
+
 export default function Files() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [page, setPage] = useState(1);
@@ -39,6 +61,8 @@ export default function Files() {
   const [total, setTotal] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const { settings: appSettings } = useAppSettings();
 
   const loadFiles = async (p = 1) => {
     try {
@@ -100,6 +124,10 @@ export default function Files() {
     }
   };
 
+  const filtered = search
+    ? files.filter((f) => f.original_filename.toLowerCase().includes(search.toLowerCase()))
+    : files;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -115,49 +143,74 @@ export default function Files() {
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-md">{error}</div>}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {files.map((file) => (
-          <div key={file.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden group">
-            <div className="h-36 bg-gray-50 flex items-center justify-center">
-              {isImage(file.content_type) && file.thumbnail_url ? (
-                <img src={file.thumbnail_url} alt={file.original_filename} className="max-h-full max-w-full object-contain" />
-              ) : isImage(file.content_type) && file.url ? (
-                <img src={file.url} alt={file.original_filename} className="max-h-full max-w-full object-contain" />
-              ) : (
-                <svg className="w-12 h-12 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              )}
-            </div>
-            <div className="p-3">
-              <p className="text-sm text-gray-900 truncate" title={file.original_filename}>
-                {file.original_filename}
-              </p>
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-xs text-gray-500">{formatSize(file.size)}</span>
-                <span className="text-xs text-gray-400">{new Date(file.created_at).toLocaleDateString()}</span>
-              </div>
-              <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                {file.url && (
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-gray-500 hover:text-gray-900"
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search files..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-gray-900"
+        />
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              <th className="text-left px-4 py-3 font-medium text-gray-600 w-20"></th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Size</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
+              <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((file) => (
+              <tr key={file.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                <td className="px-4 py-2">
+                  {isImage(file.content_type) && file.thumbnail_url ? (
+                    <img src={file.thumbnail_url} alt="" className="w-14 h-14 rounded-md object-cover" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-2xl">
+                      {getFileIcon(file.content_type)}
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-gray-900">{file.original_filename}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                    {file.original_filename.includes('.')
+                      ? file.original_filename.split('.').pop()?.toUpperCase()
+                      : file.content_type.split('/').pop()}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-gray-500">{formatSize(file.size)}</td>
+                <td className="px-4 py-3 text-gray-500">{formatDate(file.created_at, appSettings.date_format)}</td>
+                <td className="px-4 py-3 text-right">
+                  {file.url && (
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-gray-500 hover:text-gray-900 mr-3"
+                    >
+                      Download
+                    </a>
+                  )}
+                  <button
+                    onClick={() => handleDelete(file.id)}
+                    className="text-red-500 hover:text-red-700"
                   >
-                    Download
-                  </a>
-                )}
-                <button
-                  onClick={() => handleDelete(file.id)}
-                  className="text-xs text-red-500 hover:text-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {files.length === 0 && !error && (
@@ -165,7 +218,7 @@ export default function Files() {
       )}
 
       {pages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
+        <div className="flex items-center justify-center gap-2 mt-4">
           <button
             onClick={() => loadFiles(page - 1)}
             disabled={page <= 1}
