@@ -31,6 +31,7 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [language, setLanguage] = useState('en');
   const i18n = useI18n();
+  const { t } = i18n;
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileMsg, setProfileMsg] = useState('');
@@ -70,7 +71,7 @@ export default function Profile() {
       }
       const updated = await res.json();
       setUser(updated);
-      setMsg('Saved');
+      setMsg(t('profile.saved'));
     } catch (err) {
       setErr(err instanceof Error ? err.message : 'Failed');
     } finally {
@@ -97,11 +98,11 @@ export default function Profile() {
     setPasswordMsg('');
     setPasswordError('');
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError(t('profile.password_mismatch'));
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setPasswordError(t('profile.password_short'));
       return;
     }
     await updateProfile({ password: newPassword }, setPasswordMsg, setPasswordError);
@@ -110,12 +111,12 @@ export default function Profile() {
   };
 
   if (!user) {
-    return <p className="text-gray-500 text-sm">Loading...</p>;
+    return <p className="text-gray-500 text-sm">{t('app.loading')}</p>;
   }
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-lg font-semibold text-gray-900 mb-6">Profile</h1>
+      <h1 className="text-lg font-semibold text-gray-900 mb-6">{t('profile.title')}</h1>
 
       {/* Avatar + Overview */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
@@ -150,7 +151,7 @@ export default function Profile() {
                 {user.role}
               </span>
               <span className="text-xs text-gray-400">
-                Member since {new Date(user.created_at).toLocaleDateString()}
+                {t('profile.member_since')} {new Date(user.created_at).toLocaleDateString()}
               </span>
             </div>
           </div>
@@ -159,68 +160,34 @@ export default function Profile() {
 
       {/* Personal info */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Personal information</h2>
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">{t('profile.personal')}</h2>
         <form onSubmit={handleProfileUpdate} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                placeholder="John"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.first_name')}</label>
+              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                placeholder="Doe"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.last_name')}</label>
+              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.email')}</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              placeholder="+381 61 123 4567"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.phone')}</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                placeholder="https://example.com/avatar.jpg"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.avatar_url')}</label>
+              <input type="url" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              >
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.language')}</label>
+              <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
                 {i18n.languages.map((lang) => (
                   <option key={lang.code} value={lang.code}>{lang.name}</option>
                 ))}
@@ -231,50 +198,30 @@ export default function Profile() {
           {profileMsg && <p className="text-sm text-green-600">{profileMsg}</p>}
           {profileError && <p className="text-sm text-red-600">{profileError}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-50"
-          >
-            Save changes
+          <button type="submit" disabled={loading} className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-50">
+            {t('profile.save')}
           </button>
         </form>
       </div>
 
       {/* Password */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Change password</h2>
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">{t('profile.password')}</h2>
         <form onSubmit={handlePasswordUpdate} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.new_password')}</label>
+              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.confirm_password')}</label>
+              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
             </div>
           </div>
           {passwordMsg && <p className="text-sm text-green-600">{passwordMsg}</p>}
           {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
-          <button
-            type="submit"
-            disabled={loading || !newPassword}
-            className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-50"
-          >
-            Update password
+          <button type="submit" disabled={loading || !newPassword} className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-50">
+            {t('profile.update_password')}
           </button>
         </form>
       </div>

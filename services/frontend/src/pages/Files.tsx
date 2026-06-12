@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAccessToken } from '../api/auth';
 import { useAppSettings } from '../hooks/useAppSettings';
+import { useI18n } from '../hooks/useI18n';
 import { useWSListener } from '../hooks/useWebSocket';
 
 interface FileItem {
@@ -72,6 +73,7 @@ export default function Files() {
   const [detailFile, setDetailFile] = useState<FileItem | null>(null);
   const [copied, setCopied] = useState<number | null>(null);
   const { settings: appSettings } = useAppSettings();
+  const { t } = useI18n();
   const dropRef = useRef<HTMLDivElement>(null);
 
   const loadFiles = async (p = 1, q = search) => {
@@ -206,18 +208,18 @@ export default function Files() {
             <svg className="w-12 h-12 text-blue-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p className="text-blue-600 font-medium">Drop files here to upload</p>
+            <p className="text-blue-600 font-medium">{t('files.drop')}</p>
           </div>
         </div>
       )}
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Files</h2>
-          <p className="text-sm text-gray-500">{total} files</p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('files.title')}</h2>
+          <p className="text-sm text-gray-500">{total} {t('files.total')}</p>
         </div>
         <label className={`px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 cursor-pointer ${uploading ? 'opacity-50' : ''}`}>
-          {uploading ? `Uploading ${uploadProgress}%` : 'Upload files'}
+          {uploading ? `${t('files.uploading')} ${uploadProgress}%` : t('files.upload')}
           <input type="file" multiple className="hidden" onChange={handleInputUpload} disabled={uploading} />
         </label>
       </div>
@@ -234,7 +236,7 @@ export default function Files() {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search files..."
+          placeholder={t('files.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-gray-900"
@@ -246,11 +248,11 @@ export default function Files() {
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
               <th className="text-left px-4 py-3 font-medium text-gray-600 w-28"></th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Size</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{ t('files.name') }</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{ t('files.type') }</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{ t('files.size') }</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{ t('files.date') }</th>
+              <th className="text-right px-4 py-3 font-medium text-gray-600">{ t('files.actions') }</th>
             </tr>
           </thead>
           <tbody>
@@ -337,7 +339,7 @@ export default function Files() {
           <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setDetailFile(null)} />
           <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto">
             <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-900">File Details</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{ t('files.details') }</h3>
               <button onClick={() => setDetailFile(null)} className="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
             </div>
 
@@ -360,31 +362,31 @@ export default function Files() {
             {/* Info */}
             <div className="p-5 space-y-4">
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">Filename</label>
+                <label className="text-xs font-medium text-gray-500 uppercase">{ t('files.filename') }</label>
                 <p className="text-sm text-gray-900 mt-1">{detailFile.original_filename}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase">Type</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase">{ t('files.type') }</label>
                   <p className="text-sm text-gray-900 mt-1">{detailFile.content_type}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase">Size</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase">{ t('files.size') }</label>
                   <p className="text-sm text-gray-900 mt-1">{formatSize(detailFile.size)}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase">Category</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase">{ t('files.category') }</label>
                   <p className="text-sm text-gray-900 mt-1">{detailFile.category}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase">Uploaded</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase">{t('files.uploaded')}</label>
                   <p className="text-sm text-gray-900 mt-1">{formatDate(detailFile.created_at, appSettings.date_format)}</p>
                 </div>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">File URL</label>
+                <label className="text-xs font-medium text-gray-500 uppercase">{ t('files.file_url') }</label>
                 <div className="flex items-center gap-2 mt-1">
                   <input
                     type="text"
@@ -396,13 +398,13 @@ export default function Files() {
                     onClick={() => copyLink(detailFile)}
                     className="px-2 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
                   >
-                    {copied === detailFile.id ? 'Copied!' : 'Copy'}
+                    {copied === detailFile.id ? t('files.copied') : t('common.copy')}
                   </button>
                 </div>
               </div>
               {detailFile.thumbnail_url && (
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase">Thumbnail URL</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase">{ t('files.thumbnail_url') }</label>
                   <p className="text-xs text-gray-500 font-mono mt-1 break-all">{detailFile.thumbnail_url}</p>
                 </div>
               )}

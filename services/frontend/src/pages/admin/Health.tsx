@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAccessToken } from '../../api/auth';
+import { useI18n } from '../../hooks/useI18n';
 
 interface CheckResult {
   status: string;
@@ -48,6 +49,7 @@ export default function Health() {
   const [fetchedAt, setFetchedAt] = useState<Record<string, number>>({});
   const [tick, setTick] = useState(0);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
+  const { t } = useI18n();
 
   const checkAll = async () => {
     const results: Record<string, ServiceHealth | null> = {};
@@ -104,9 +106,9 @@ export default function Health() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Service Health</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{ t('health.title') }</h2>
           {lastCheck && (
-            <p className="text-sm text-gray-500">Last checked: {lastCheck.toLocaleTimeString()}</p>
+            <p className="text-sm text-gray-500">{ t('health.last_checked') }: {lastCheck.toLocaleTimeString()}</p>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -115,13 +117,13 @@ export default function Health() {
               anyOffline ? STATUS_STYLES.error : allOk ? STATUS_STYLES.ok : STATUS_STYLES.degraded
             }`}
           >
-            {anyOffline ? 'Services Offline' : allOk ? 'All Systems Operational' : 'Degraded'}
+            {anyOffline ? t('health.offline') : allOk ? t('health.operational') : t('health.degraded')}
           </span>
           <button
             onClick={checkAll}
             className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
           >
-            Refresh
+            {t('health.refresh')}
           </button>
         </div>
       </div>
@@ -162,14 +164,14 @@ export default function Health() {
                       }`}
                     >
                       <span className="font-medium capitalize">{name}</span>
-                      <span className="ml-2">{check.status === 'ok' ? 'Connected' : check.detail || 'Error'}</span>
+                      <span className="ml-2">{check.status === 'ok' ? t('health.connected') : check.detail || 'Error'}</span>
                     </div>
                   ))}
                 </div>
               )}
 
               {isOffline && (
-                <p className="text-sm text-red-600">Service is not responding</p>
+                <p className="text-sm text-red-600">{ t('health.not_responding') }</p>
               )}
             </div>
           );

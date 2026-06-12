@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listAuditLogs, type AuditEntry } from '../../api/audit';
 import { listUsers, type User } from '../../api/admin';
+import { useI18n } from '../../hooks/useI18n';
 import { useAppSettings } from '../../hooks/useAppSettings';
 
 const ACTION_COLORS: Record<string, string> = {
@@ -34,6 +35,7 @@ export default function AuditLog() {
   const [actionFilter, setActionFilter] = useState('');
   const [error, setError] = useState('');
   const [userMap, setUserMap] = useState<Record<number, User>>({});
+  const { t } = useI18n();
   const { settings: appSettings } = useAppSettings();
 
   const loadUsers = async () => {
@@ -69,8 +71,8 @@ export default function AuditLog() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Audit Log</h2>
-          <p className="text-sm text-gray-500">{total} entries</p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('audit.title')}</h2>
+          <p className="text-sm text-gray-500">{total} {t('audit.entries')}</p>
         </div>
       </div>
 
@@ -82,10 +84,10 @@ export default function AuditLog() {
           onChange={(e) => setActionFilter(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
-          <option value="">All actions</option>
-          <option value="created">Created</option>
-          <option value="updated">Updated</option>
-          <option value="deactivated">Deactivated</option>
+          <option value="">{t('audit.all_actions')}</option>
+          <option value="created">{t('audit.created')}</option>
+          <option value="updated">{t('audit.updated')}</option>
+          <option value="deactivated">{t('audit.deactivated')}</option>
         </select>
       </div>
 

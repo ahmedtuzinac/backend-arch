@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAccessToken, getMe } from '../../api/auth';
 import { useAppSettings } from '../../hooks/useAppSettings';
+import { useI18n } from '../../hooks/useI18n';
 
 interface Setting {
   key: string;
@@ -35,6 +36,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const { reload: reloadAppSettings } = useAppSettings();
+  const { t } = useI18n();
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function Settings() {
         body: JSON.stringify(values),
       });
       if (!res.ok) throw new Error('Failed to save');
-      setMessage('Settings saved');
+      setMessage(t('settings.saved'));
       reloadAppSettings();
     } catch {
       setError('Failed to save settings');
@@ -130,7 +132,7 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">Settings</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('settings.title')}</h2>
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-md">{error}</div>}
       {message && <div className="mb-4 p-3 bg-green-50 text-green-600 text-sm rounded-md">{message}</div>}
@@ -152,7 +154,7 @@ export default function Settings() {
               disabled={saving}
               className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save settings'}
+              {saving ? t('common.saving') : t('settings.save')}
             </button>
           </div>
         )}
