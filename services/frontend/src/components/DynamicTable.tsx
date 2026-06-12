@@ -223,20 +223,25 @@ export default function DynamicTable({
       const initials = firstName && lastName
         ? `${firstName[0]}${lastName[0]}`.toUpperCase()
         : email ? email[0].toUpperCase() : '?';
+      const isOnline = showOnlineStatus && onlineUserIds.includes(String(item.id));
 
-      if (url) {
-        return (
-          <div className="w-9 h-9 rounded-full p-0.5" style={{ backgroundColor: appSettings.primary_color + '30' }}>
-            <img src={url} alt="" className="w-full h-full rounded-full object-cover" />
-          </div>
-        );
-      }
       return (
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-          style={{ backgroundColor: appSettings.primary_color }}
-        >
-          {initials}
+        <div className="relative w-10 h-10">
+          {url ? (
+            <img src={url} alt="" className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+              style={{ backgroundColor: appSettings.primary_color }}
+            >
+              {initials}
+            </div>
+          )}
+          {showOnlineStatus && (
+            <span
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}
+            />
+          )}
         </div>
       );
     }
@@ -387,7 +392,6 @@ export default function DynamicTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              {showOnlineStatus && <th className="text-left px-4 py-3 font-medium text-gray-600 w-8"></th>}
               {visibleColumns.map((col) => (
                 <th
                   key={col.key}
@@ -405,17 +409,8 @@ export default function DynamicTable({
           </thead>
           <tbody>
             {items.map((item, idx) => {
-              const isOnline = showOnlineStatus && onlineUserIds.includes(String(item.id));
               return (
                 <tr key={String(item.id ?? idx)} className="border-b border-gray-100 last:border-0">
-                  {showOnlineStatus && (
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}
-                        title={isOnline ? 'Online' : 'Offline'}
-                      />
-                    </td>
-                  )}
                   {visibleColumns.map((col) => (
                     <td key={col.key} className="px-4 py-3 text-gray-900">
                       {renderCell(col, item[col.key], item)}
