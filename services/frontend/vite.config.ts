@@ -16,6 +16,10 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/ws/, ''),
         ws: true,
       },
+      '/files': {
+        target: 'http://localhost:8005',
+        rewrite: (path) => path.replace(/^\/files/, ''),
+      },
     },
   },
 })

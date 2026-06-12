@@ -48,3 +48,33 @@ app.add_middleware(RequestIdMiddleware)
 app.include_router(uploads_router)
 app.include_router(task_router)
 app.include_router(create_health_router("files"))
+
+
+@app.get("/storage/health")
+async def storage_health():
+    from app.storage.client import get_s3_client
+
+    try:
+        client = get_s3_client()
+        client.head_bucket(Bucket=settings.s3_bucket)
+        buckets = client.list_buckets()
+        return {
+            "status": "ok",
+            "service": "storage",
+            "endpoint": settings.s3_endpoint_url,
+            "bucket": settings.s3_bucket,
+            "checks": {
+                "connection": {"status": "ok"},
+                "bucket": {"status": "ok"},
+            },
+            "buckets": [b["Name"] for b in buckets.get("Buckets", [])],
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "service": "storage",
+            "endpoint": settings.s3_endpoint_url,
+            "checks": {
+                "connection": {"status": "error", "detail": str(e)},
+            },
+        }
