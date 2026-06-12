@@ -330,7 +330,7 @@ export default function Files() {
             <button onClick={() => setPreview(null)} className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-gray-600 hover:text-gray-900">
               &times;
             </button>
-            <img src={preview.url} alt={preview.original_filename} className="max-h-[85vh] rounded-lg shadow-2xl" />
+            <img src={`/api/files/files/${preview.id}/preview`} alt={preview.original_filename} className="max-h-[85vh] rounded-lg shadow-2xl" />
             <div className="mt-3 text-center">
               <p className="text-white text-sm">{preview.original_filename}</p>
               <p className="text-white/60 text-xs">{formatSize(preview.size)}</p>

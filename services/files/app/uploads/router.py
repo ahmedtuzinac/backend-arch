@@ -116,6 +116,38 @@ async def get_file(file_id: int):
     return response
 
 
+@router.get("/{file_id}/preview")
+async def preview_file(file_id: int):
+    """On-demand preview — converts HEIC/HEIF to JPEG for browser display."""
+    from io import BytesIO
+
+    from fastapi.responses import StreamingResponse
+    from PIL import Image
+    from pillow_heif import register_heif_opener
+
+    register_heif_opener()
+
+    record = await FileUpload.get_or_none(id=file_id)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
+    s3 = get_s3_client()
+    obj = s3.get_object(Bucket=settings.s3_bucket, Key=record.s3_key)
+    data = obj["Body"].read()
+
+    ext = record.original_filename.rsplit(".", 1)[-1].lower() if "." in record.original_filename else ""
+    needs_convert = ext in ("heic", "heif") or record.content_type in ("image/heic", "image/heif")
+
+    if needs_convert:
+        img = Image.open(BytesIO(data))
+        buffer = BytesIO()
+        img.save(buffer, format="JPEG", quality=90)
+        buffer.seek(0)
+        return StreamingResponse(buffer, media_type="image/jpeg")
+
+    return StreamingResponse(BytesIO(data), media_type=record.content_type)
+
+
 @router.delete("/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_file(file_id: int):
     record = await FileUpload.get_or_none(id=file_id)
