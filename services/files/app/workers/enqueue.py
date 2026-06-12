@@ -1,0 +1,28 @@
+
+from app.config import settings
+from arq.connections import ArqRedis, RedisSettings, create_pool
+
+from core_shared.workers import enqueue_task
+
+_pool: ArqRedis | None = None
+
+
+async def get_pool() -> ArqRedis:
+    global _pool
+    if _pool is None:
+        _pool = await create_pool(RedisSettings.from_dsn(settings.redis_url))
+    return _pool
+
+
+async def enqueue(task_name: str, **kwargs) -> str:
+    """Enqueue a task: log it in DB and push to Redis queue."""
+    task_log = await enqueue_task(task_name=task_name, input_data=kwargs)
+    job_id = task_log.job_id
+
+    try:
+        pool = await get_pool()
+        await pool.enqueue_job(task_name, job_id=job_id, **kwargs)
+    except Exception:
+        pass
+
+    return job_id

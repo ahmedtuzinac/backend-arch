@@ -14,12 +14,12 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, user_id: str) -> None:
         # Close existing connection for this user if any
+        import contextlib
+
         old_ws = self.active_connections.get(user_id)
         if old_ws:
-            try:
+            with contextlib.suppress(Exception):
                 await old_ws.close()
-            except Exception:
-                pass
         await websocket.accept()
         self.active_connections[user_id] = websocket
         await logger.ainfo("ws_connected", user_id=user_id)
