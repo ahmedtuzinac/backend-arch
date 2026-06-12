@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listAuditLogs, type AuditEntry } from '../../api/audit';
+import { listUsers, type User } from '../../api/admin';
+import { useAppSettings } from '../../hooks/useAppSettings';
 
 const ACTION_COLORS: Record<string, string> = {
   created: 'bg-green-100 text-green-700',
@@ -31,6 +33,17 @@ export default function AuditLog() {
   const [total, setTotal] = useState(0);
   const [actionFilter, setActionFilter] = useState('');
   const [error, setError] = useState('');
+  const [userMap, setUserMap] = useState<Record<number, User>>({});
+  const { settings: appSettings } = useAppSettings();
+
+  const loadUsers = async () => {
+    try {
+      const data = await listUsers({ perPage: 100 });
+      const map: Record<number, User> = {};
+      for (const u of data.items) map[u.id] = u;
+      setUserMap(map);
+    } catch { /* ignore */ }
+  };
 
   const load = async (p = page) => {
     try {
@@ -43,6 +56,10 @@ export default function AuditLog() {
       setError('Failed to load audit log');
     }
   };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   useEffect(() => {
     load(1);
@@ -74,7 +91,26 @@ export default function AuditLog() {
 
       <div className="space-y-3">
         {entries.map((entry) => (
-          <div key={entry.id} className="bg-white border border-gray-200 rounded-lg p-4 flex items-start gap-4">
+          <div key={entry.id} className="bg-white border border-gray-200 rounded-lg p-4 flex items-start gap-3">
+            {(() => {
+              const user = userMap[entry.actor_id];
+              const avatarUrl = user?.avatar_url;
+              const firstName = user?.first_name || '';
+              const lastName = user?.last_name || '';
+              const initials = firstName && lastName
+                ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+                : entry.actor_email[0].toUpperCase();
+              return avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+              ) : (
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
+                  style={{ backgroundColor: appSettings.primary_color }}
+                >
+                  {initials}
+                </div>
+              );
+            })()}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-medium text-gray-900">{entry.actor_email}</span>
