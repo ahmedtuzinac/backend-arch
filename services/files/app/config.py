@@ -12,8 +12,8 @@ class FilesSettings(BaseAppSettings):
     s3_bucket: str = "uploads"
     s3_region: str = "us-east-1"
 
-    max_file_size: int = 10 * 1024 * 1024  # 10MB
-    allowed_extensions: str = "jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,csv,txt,zip"
+    max_file_size: int = 50 * 1024 * 1024  # 50MB
+    allowed_extensions: str = "jpg,jpeg,png,gif,webp,svg,bmp,ico,tiff,heic,heif,pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,md,json,xml,yaml,yml,zip,rar,7z,tar,gz,mp3,mp4,wav,avi,mov,mkv,webm,html,css,js,ts,py,sql"
     thumbnail_size: int = 200
 
     host: str = "0.0.0.0"

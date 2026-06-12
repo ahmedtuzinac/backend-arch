@@ -5,8 +5,11 @@ import structlog
 from app.config import settings
 from app.storage.client import get_s3_client
 from PIL import Image
+from pillow_heif import register_heif_opener
 
 from core_shared.workers import tracked_task
+
+register_heif_opener()
 
 logger = structlog.get_logger()
 

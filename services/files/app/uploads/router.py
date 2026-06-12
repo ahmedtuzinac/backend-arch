@@ -75,7 +75,9 @@ async def upload_file(
     )
 
     # Generate thumbnail for images
-    if file.content_type and file.content_type.startswith("image/"):
+    image_extensions = {"jpg", "jpeg", "png", "gif", "webp", "bmp", "tiff", "heic", "heif"}
+    is_image = (file.content_type and file.content_type.startswith("image/")) or ext in image_extensions
+    if is_image:
         await enqueue("generate_thumbnail", file_id=record.id)
 
     await notify_files_update()
