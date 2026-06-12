@@ -69,6 +69,7 @@ export default function Files() {
   const [search, setSearch] = useState('');
   const [dragging, setDragging] = useState(false);
   const [preview, setPreview] = useState<FileItem | null>(null);
+  const [detailFile, setDetailFile] = useState<FileItem | null>(null);
   const [copied, setCopied] = useState<number | null>(null);
   const { settings: appSettings } = useAppSettings();
   const dropRef = useRef<HTMLDivElement>(null);
@@ -277,7 +278,9 @@ export default function Files() {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-gray-900">{file.original_filename}</span>
+                  <button onClick={() => setDetailFile(file)} className="text-gray-900 hover:underline text-left">
+                    {file.original_filename}
+                  </button>
                 </td>
                 <td className="px-4 py-3">
                   <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
@@ -326,6 +329,106 @@ export default function Files() {
             Next
           </button>
         </div>
+      )}
+
+      {/* Detail side panel */}
+      {detailFile && (
+        <>
+          <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setDetailFile(null)} />
+          <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto">
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">File Details</h3>
+              <button onClick={() => setDetailFile(null)} className="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+            </div>
+
+            {/* Preview */}
+            <div className="p-5 border-b border-gray-100">
+              {isImage(detailFile.content_type) ? (
+                <img
+                  src={`/api/files/files/${detailFile.id}/preview`}
+                  alt={detailFile.original_filename}
+                  className="w-full rounded-lg cursor-pointer hover:opacity-90"
+                  onClick={() => { setPreview(detailFile); setDetailFile(null); }}
+                />
+              ) : (
+                <div className="w-full h-40 rounded-lg bg-gray-100 flex items-center justify-center text-5xl">
+                  {getFileIcon(detailFile.content_type)}
+                </div>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Filename</label>
+                <p className="text-sm text-gray-900 mt-1">{detailFile.original_filename}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">Type</label>
+                  <p className="text-sm text-gray-900 mt-1">{detailFile.content_type}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">Size</label>
+                  <p className="text-sm text-gray-900 mt-1">{formatSize(detailFile.size)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">Category</label>
+                  <p className="text-sm text-gray-900 mt-1">{detailFile.category}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">Uploaded</label>
+                  <p className="text-sm text-gray-900 mt-1">{formatDate(detailFile.created_at, appSettings.date_format)}</p>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">File URL</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="text"
+                    readOnly
+                    value={detailFile.url}
+                    className="flex-1 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600 font-mono"
+                  />
+                  <button
+                    onClick={() => copyLink(detailFile)}
+                    className="px-2 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    {copied === detailFile.id ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+              {detailFile.thumbnail_url && (
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">Thumbnail URL</label>
+                  <p className="text-xs text-gray-500 font-mono mt-1 break-all">{detailFile.thumbnail_url}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="p-5 border-t border-gray-100 flex gap-2">
+              {detailFile.url && (
+                <a
+                  href={detailFile.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 text-center px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Download
+                </a>
+              )}
+              <button
+                onClick={() => { handleDelete(detailFile.id); setDetailFile(null); }}
+                className="flex-1 text-center px-3 py-2 text-sm text-red-600 border border-red-200 rounded-md hover:bg-red-50"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Preview modal */}
