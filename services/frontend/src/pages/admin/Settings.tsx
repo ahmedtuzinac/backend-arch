@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAccessToken } from '../../api/auth';
+import { getAccessToken, getMe } from '../../api/auth';
 import { useAppSettings } from '../../hooks/useAppSettings';
 
 interface Setting {
@@ -59,7 +59,9 @@ export default function Settings() {
     setError('');
 
     try {
-      const res = await fetch('/auth/settings/', {
+      const me = await getMe();
+      const params = new URLSearchParams({ actor_id: String(me.id), actor_email: me.email });
+      const res = await fetch(`/auth/settings/?${params}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,

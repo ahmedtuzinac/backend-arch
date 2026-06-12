@@ -18,3 +18,8 @@
 .focus\:ring-gray-900:focus {
   --tw-ring-color: var(--color-primary) !important;
 }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

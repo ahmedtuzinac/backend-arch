@@ -8,6 +8,7 @@ import Health from './admin/Health';
 import Settings from './admin/Settings';
 import Profile from './Profile';
 import Files from './Files';
+import Toast from '../components/Toast';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -145,6 +146,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       </div>
       </div>
     </div>
+    <Toast />
     </AppSettingsContext.Provider>
   );
 }
